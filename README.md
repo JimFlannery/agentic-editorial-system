@@ -1,6 +1,6 @@
 # TRAINS Stack
 
-**T-R-AI-N-S** — A modern stack for AI-augmented web development.
+**T-R-AI-N-S** — A modern stack for AI-augmented web development simplifying integration of AI-powered features.
 
 | Letter | Technology | Version |
 |--------|-----------|---------|
@@ -52,8 +52,8 @@ This project ships with Claude fully wired up — a working streaming chat UI is
 ### Setup
 
 ```bash
-# 1. Add your API key to .env.local
-ANTHROPIC_API_KEY=sk-ant-...
+# Add your API key to .env.local file
+ANTHROPIC_API_KEY=your_api_key_here
 ```
 
 Get a key at [console.anthropic.com](https://console.anthropic.com).
@@ -110,6 +110,13 @@ npm run dev
 Open [http://localhost:3000](http://localhost:3000) — you'll see a working Claude chat interface.
 
 ---
+
+## Notes
+
+- Next.js is installed with the App Router, which uses a separate directory for each page. This allows for a new CLAUDE.md to be added to each directory to give granular instructions to Claude
+about how each page should work and what it should do. 
+- [Puppeteer MCP Server](https://github.com/merajmehrabi/puppeteer-mcp-server) - Solves the issue of agents marking features as complete without properly verifying them end-to-end.
+It allows Claude to actually navigate the application, click buttons, fill forms, and verify that features work end-to-end.
 
 ## Tech References
 
