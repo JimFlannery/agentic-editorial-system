@@ -1,37 +1,128 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+# TRAINS Stack
+
+**T-R-AI-N-S** — A modern stack for AI-augmented web development.
+
+| Letter | Technology | Version |
+|--------|-----------|---------|
+| **T** | [Tailwind CSS](https://tailwindcss.com) | v4 |
+| **R** | [React](https://react.dev) | v19 |
+| **AI** | [Claude (Anthropic)](https://docs.anthropic.com) | claude-opus-4-6 |
+| **N** | [Next.js](https://nextjs.org) | v16 |
+| **S** | [Shadcn/ui](https://ui.shadcn.com) | v4 |
+
+---
+
+## Why TRAINS?
+
+Each technology in this stack becomes more powerful with AI assistance:
+
+- **Tailwind CSS** — Utility-first CSS that pairs naturally with AI code generation. Describe a layout, get Tailwind classes. No mental overhead switching between stylesheets and components.
+- **React** — The industry-standard component model. Mature, well-documented, and the target of virtually every AI coding assistant's training data.
+- **AI** — Claude (Anthropic) is wired in via `@anthropic-ai/sdk`. The streaming chat API lives at `app/api/chat/route.ts`. Claude Opus 4.6 with adaptive thinking is the default model — swap it or add tools in one file.
+- **Next.js** — Full-stack React framework with App Router, Server Components, and built-in API routes. Mature, production-ready, and backed by Vercel.
+- **Shadcn/ui** — A collection of beautifully designed, accessible components built on Radix/Base UI primitives and styled with Tailwind. Unlike a traditional component library, you own the source — AI can read and modify it directly.
+
+---
+
+## Shadcn Components
+
+Shadcn/ui components are added to your project individually — you own the source code in `components/ui/`. Browse the full component catalog here:
+
+**[https://ui.shadcn.com/docs/components](https://ui.shadcn.com/docs/components)**
+
+Add a component with the Shadcn CLI:
+
+```bash
+npx shadcn@latest add button
+npx shadcn@latest add card
+npx shadcn@latest add dialog
+# etc.
+```
+
+Currently installed components:
+
+- `components/ui/button.tsx` — Button with size and style variants
+
+---
+
+## Claude AI
+
+This project ships with Claude fully wired up — a working streaming chat UI is on the home page.
+
+### Setup
+
+```bash
+# 1. Add your API key to .env.local
+ANTHROPIC_API_KEY=sk-ant-...
+```
+
+Get a key at [console.anthropic.com](https://console.anthropic.com).
+
+### How it works
+
+| File | Role |
+|------|------|
+| `app/api/chat/route.ts` | Next.js Route Handler — streams Claude responses |
+| `components/chat.tsx` | Client component — chat UI with streaming support |
+| `app/page.tsx` | Home page — renders `<Chat />` |
+
+**Model:** `claude-opus-4-6` with `thinking: { type: "adaptive" }` (Anthropic's most capable model with adaptive reasoning).
+
+To change the model, system prompt, or add tools, edit [app/api/chat/route.ts](app/api/chat/route.ts).
+
+**Anthropic SDK docs:** [docs.anthropic.com](https://docs.anthropic.com)
+
+---
+
+## Project Structure
+
+```
+├── app/
+│   ├── api/chat/route.ts # Claude streaming API route
+│   ├── globals.css       # Tailwind v4 global styles
+│   ├── layout.tsx        # Root layout (Geist font)
+│   └── page.tsx          # Home page — renders <Chat />
+├── components/
+│   ├── chat.tsx          # Chat UI client component
+│   └── ui/               # Shadcn components (you own these)
+├── lib/
+│   └── utils.ts          # cn() helper (tailwind-merge + clsx)
+├── CLAUDE.md             # Claude Code project guide
+├── components.json       # Shadcn configuration
+└── next.config.ts        # Next.js configuration
+```
+
+---
 
 ## Getting Started
 
-First, run the development server:
-
 ```bash
+# 1. Install dependencies
+npm install
+
+# 2. Add your Anthropic API key
+echo "ANTHROPIC_API_KEY=sk-ant-..." > .env.local
+
+# 3. Start the dev server
 npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
 ```
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+Open [http://localhost:3000](http://localhost:3000) — you'll see a working Claude chat interface.
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+---
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+## Tech References
 
-## Learn More
+- [Next.js Docs](https://nextjs.org/docs)
+- [React Docs](https://react.dev)
+- [Tailwind CSS Docs](https://tailwindcss.com/docs)
+- [Shadcn/ui Components](https://ui.shadcn.com/docs/components)
+- [Anthropic API Docs](https://docs.anthropic.com)
+- [Anthropic Console](https://console.anthropic.com) (API keys)
+- [Lucide Icons](https://lucide.dev) (included)
 
-To learn more about Next.js, take a look at the following resources:
+## Deploy
 
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
+The easiest deployment target is [Vercel](https://vercel.com/new) — zero-config for Next.js apps.
 
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
-
-## Deploy on Vercel
-
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
-
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
-"# tailwind-react-ai-nextjs-shadcn" 
+See the [Next.js deployment docs](https://nextjs.org/docs/app/building-your-application/deploying) for other options.
