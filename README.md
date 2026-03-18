@@ -115,7 +115,7 @@ Open [http://localhost:3000](http://localhost:3000) — you'll see a working Cla
 
 - Next.js is installed with the App Router, which uses a separate directory for each page. This allows for a new CLAUDE.md to be added to each directory to give granular instructions to Claude
 about how each page should work and what it should do. 
-- [Puppeteer MCP Server](https://github.com/merajmehrabi/puppeteer-mcp-server) - Solves the issue of agents marking features as complete without properly verifying them end-to-end.
+- Recommended to install: [Puppeteer MCP Server](https://github.com/merajmehrabi/puppeteer-mcp-server) - Solves the issue of agents marking features as complete without properly verifying them end-to-end.
 It allows Claude to actually navigate the application, click buttons, fill forms, and verify that features work end-to-end.
 
 ## Tech References
