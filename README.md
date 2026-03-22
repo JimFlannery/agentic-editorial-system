@@ -115,8 +115,19 @@ Open [http://localhost:3000](http://localhost:3000) — you'll see a working Cla
 
 - Next.js is installed with the App Router, which uses a separate directory for each page. This allows for a new CLAUDE.md to be added to each directory to give granular instructions to Claude
 about how each page should work and what it should do. 
-- Recommended to install: [Puppeteer MCP Server](https://github.com/merajmehrabi/puppeteer-mcp-server) - Solves the issue of agents marking features as complete without properly verifying them end-to-end.
-It allows Claude to actually navigate the application, click buttons, fill forms, and verify that features work end-to-end.
+**Installed MCP Servers** (configured in `.mcp.json`):
+
+- [Shadcn MCP Server](https://github.com/ahonn/mcp-server-shadcn) — Gives Claude direct access to the Shadcn/ui component registry. Claude can browse, search, and view component examples without leaving the editor.
+- [Context7 MCP](https://github.com/upstash/context7) — Fetches up-to-date documentation for Next.js, React, Tailwind, and Shadcn on demand. Prevents Claude from generating code against outdated APIs (critical since all four core libraries are recent major versions).
+- [Puppeteer MCP Server](https://github.com/merajmehrabi/puppeteer-mcp-server) — Lets Claude navigate the running app, click buttons, fill forms, and take screenshots. Closes the loop on feature verification so Claude can confirm things actually work end-to-end.
+
+**Additional MCP Servers to consider** depending on your project's needs:
+
+- [GitHub MCP](https://github.com/github/github-mcp-server) — Useful if you're using GitHub for issues and PRs. Lets Claude create issues, open PRs, and read comments without leaving the editor. Most valuable once the project has a team or a growing backlog.
+- [Figma MCP](https://github.com/GLips/Figma-Context-MCP) — Strong fit for Tailwind + Shadcn workflows. If designs live in Figma, Claude can read component specs and translate them directly into Tailwind classes and Shadcn primitives.
+- [Vercel MCP](https://vercel.com/blog/vercel-mcp-server) — Lets Claude check deployment status, manage environment variables, and read logs without leaving the editor. Most useful once the project is deployed.
+- [Storybook MCP](https://storybook.js.org/blog/storybook-mcp) — Useful for component-heavy projects that use Storybook for isolated component development and documentation. Less necessary if Shadcn covers your component needs.
+- **Database MCPs** (e.g. [Postgres](https://github.com/modelcontextprotocol/servers/tree/main/src/postgres), [Supabase](https://github.com/supabase-community/supabase-mcp)) — Only relevant once the project adds a persistent data layer.
 
 ## Tech References
 
