@@ -16,6 +16,10 @@ The result is that journals are effectively locked into whatever the vendor has 
 
 ## The Idea: Workflow as a Graph
 
+Think of a graph the way you'd think of a map. A map has **places** (cities, landmarks) connected by **roads** (routes between them). A property graph works the same way: it has **things** (people, manuscripts, tasks) connected by **relationships** (submitted, assigned to, reviewed by). You can follow the connections to understand how everything relates — just like tracing a route on a map.
+
+In this system, your editorial workflow *is* that map. People, manuscripts, decisions, and deadlines are the places. The rules about who does what, and in what order, are the roads between them. Changing a workflow means redrawing part of the map — not rewriting software.
+
 This system stores all editorial workflows as a **property graph**. Every participant is a node; every action or handoff is a directed relationship between nodes. Workflows are not hardcoded — they are data.
 
 ### Example: Review Article Workflow
