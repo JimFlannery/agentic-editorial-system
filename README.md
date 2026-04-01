@@ -8,7 +8,9 @@ An open-source editorial management system for academic and scientific publishin
 
 ## The Problem
 
-Existing editorial management systems (e.g. ScholarOne, Editorial Manager) are expensive, closed-source, and built around rigid linear workflows. Each journal type — Review Articles, Original Research, Case Reports, Letters — has its own workflow, but these are hardcoded rather than configurable. Adding a new manuscript type or adjusting a review process requires vendor involvement and significant cost. The systems serve a niche academic market, which keeps prices high and innovation low.
+Existing editorial management systems (e.g. ScholarOne, Editorial Manager) are configurable — but the configuration process is complex enough that journals cannot do it themselves. Vendors are routinely involved in what should be routine changes: adjusting a review deadline, adding a new manuscript type, modifying a decision workflow. Anything beyond what the configuration layer allows requires working with a technical team to develop and deploy new features.
+
+The result is that journals are effectively locked into whatever the vendor has set up for them. Changes are expensive and slow. The systems serve a niche academic market, which keeps prices high and makes vendors the bottleneck for innovation. Open-source alternatives exist but replicate the same architecture — complexity is the product, not a flaw.
 
 ---
 
