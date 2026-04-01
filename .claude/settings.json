@@ -1,0 +1,24 @@
+{
+  "permissions": {
+    "allow": [
+      "Read(//c/Users/jim-f/.claude/projects/c--Users-jim-f-source-repos-oss-editorial-management-system/memory/**)",
+      "WebFetch(domain:github.com)",
+      "WebFetch(domain:docs.falkordb.com)",
+      "WebFetch(domain:www.tembo.io)",
+      "WebFetch(domain:tembo.io)",
+      "WebFetch(domain:aiven.io)",
+      "WebFetch(domain:railway.com)",
+      "WebFetch(domain:neon.com)",
+      "WebFetch(domain:render.com)",
+      "WebFetch(domain:fly.io)",
+      "WebFetch(domain:community.fly.io)",
+      "WebFetch(domain:temboio.substack.com)",
+      "WebFetch(domain:legacy.tembo.io)",
+      "WebFetch(domain:docs.railway.com)",
+      "WebFetch(domain:techcommunity.microsoft.com)"
+    ],
+    "additionalDirectories": [
+      "c:\\Users\\jim-f\\.claude\\projects\\c--Users-jim-f-source-repos-oss-editorial-management-system\\memory"
+    ]
+  }
+}

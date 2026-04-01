@@ -1,76 +1,88 @@
-# TRAINS Stack
+# OSS Editorial Management System
 
-**T-R-AI-N-S** — A modern stack for AI-augmented web development simplifying integration of AI-powered features.
+An open-source editorial management system for academic and scientific publishing, built on a graph database workflow engine and the TRAINS stack. Licensed under [AGPLv3](LICENSE).
+
+> **Status:** Early planning / pre-development
+
+---
+
+## The Problem
+
+Existing editorial management systems (e.g. ScholarOne, Editorial Manager) are expensive, closed-source, and built around rigid linear workflows. Each journal type — Review Articles, Original Research, Case Reports, Letters — has its own workflow, but these are hardcoded rather than configurable. Adding a new manuscript type or adjusting a review process requires vendor involvement and significant cost. The systems serve a niche academic market, which keeps prices high and innovation low.
+
+---
+
+## The Idea: Workflow as a Graph
+
+This system stores all editorial workflows as a **property graph**. Every participant is a node; every action or handoff is a directed relationship between nodes. Workflows are not hardcoded — they are data.
+
+### Example: Review Article Workflow
+
+```
+[Author] --submits--> [Manuscript]
+[Manuscript] --assigned-to--> [Assistant Editor]
+[Assistant Editor] --invites--> [Reviewer 1]
+[Assistant Editor] --invites--> [Reviewer 2]
+[Assistant Editor] --invites--> [Reviewer 3]
+[Reviewer 1] --submits--> [Review]
+[Reviewer 2] --submits--> [Review]
+[Reviewer 3] --submits--> [Review]
+[Editor] --reads--> [Review x3]
+[Editor] --sends--> [Decision Email] --uses--> [Email Template: Major Revision]
+[Decision Email] --notifies--> [Author]
+```
+
+A different manuscript type simply uses a different subgraph. No code changes needed — just a different workflow definition stored in the database.
+
+### Logic Gates
+
+Conditional logic is encoded as **Gate nodes** in the graph — first-class queryable entities, not application code. Each gate has a type, parameters, and typed outgoing relationships (`ON_PASS`, `ON_FAIL`, `ON_ESCALATE`) pointing to the next action. Gates evaluate on events (a reviewer submits, a deadline passes). The application evaluates gates generically by type; the specific thresholds and deadlines live in the graph itself.
+
+Example: a `COUNT_THRESHOLD_BY_DEADLINE` gate with `minimum: 3` on a Review Article either passes (all 3 reviewers submitted by deadline) or fails (one or more are late — trigger a reminder email to the late reviewers specifically, then re-evaluate after an extension).
+
+### Multi-Journal Support
+
+One installation hosts multiple journals. Each journal has its own editorial team, reviewer pool, workflow definitions, and manuscript queue. Roles are journal-scoped — a person can be an editor on one journal and a reviewer on another.
+
+---
+
+## Agentic AI Integration
+
+Because the workflow is a graph, AI agents can traverse and act on it naturally. The first planned agentic feature is **AI-assisted reviewer selection**:
+
+An assistant editor triggers the agent, which queries the graph for:
+- Reviewers with matching subject area expertise
+- Recency of last review assignment (avoid overburdening active reviewers)
+- Existing relationships between reviewer and author nodes (detect conflicts of interest)
+- Historical acceptance rates and review quality scores
+
+The agent returns a ranked shortlist. The assistant editor confirms or overrides. This closes a loop that currently takes hours of manual cross-referencing.
+
+---
+
+## Stack
+
+**TRAINS** — Tailwind · React · AI · Next.js · Shadcn
 
 | Letter | Technology | Version |
 |--------|-----------|---------|
 | **T** | [Tailwind CSS](https://tailwindcss.com) | v4 |
 | **R** | [React](https://react.dev) | v19 |
 | **AI** | [Claude (Anthropic)](https://docs.anthropic.com) | claude-opus-4-6 |
-| **N** | [Next.js](https://nextjs.org) | v16 |
+| **N** | [Next.js](https://nextjs.org) | v16 (App Router) |
 | **S** | [Shadcn/ui](https://ui.shadcn.com) | v4 |
 
----
+**Graph + Relational DB:** [PostgreSQL](https://www.postgresql.org) + [Apache AGE](https://age.apache.org) extension (Cypher query support over Postgres). Apache 2.0 licensed — the only viable path given that Neo4j, ArangoDB, FalkorDB, and Memgraph all now use SaaS-restricting licenses incompatible with AGPLv3 SaaS hosting without a commercial agreement.
 
-## Why TRAINS?
-
-Each technology in this stack becomes more powerful with AI assistance:
-
-- **Tailwind CSS** — Utility-first CSS that pairs naturally with AI code generation. Describe a layout, get Tailwind classes. No mental overhead switching between stylesheets and components.
-- **React** — The industry-standard component model. Mature, well-documented, and the target of virtually every AI coding assistant's training data.
-- **AI** — Claude (Anthropic) is wired in via `@anthropic-ai/sdk`. The streaming chat API lives at `app/api/chat/route.ts`. Claude Opus 4.6 with adaptive thinking is the default model — swap it or add tools in one file.
-- **Next.js** — Full-stack React framework with App Router, Server Components, and built-in API routes. Mature, production-ready, and backed by Vercel.
-- **Shadcn/ui** — A collection of beautifully designed, accessible components built on Radix/Base UI primitives and styled with Tailwind. Unlike a traditional component library, you own the source — AI can read and modify it directly.
+**Object Storage:** [MinIO](https://min.io) (S3-compatible, AGPLv3) for binary files — manuscripts, figures, reviewer attachments. Operators can swap in any S3-compatible service with no code changes.
 
 ---
 
-## Shadcn Components
+## License
 
-Shadcn/ui components are added to your project individually — you own the source code in `components/ui/`. Browse the full component catalog here:
+[GNU Affero General Public License v3.0 (AGPLv3)](LICENSE)
 
-**[https://ui.shadcn.com/docs/components](https://ui.shadcn.com/docs/components)**
-
-Add a component with the Shadcn CLI:
-
-```bash
-npx shadcn@latest add button
-npx shadcn@latest add card
-npx shadcn@latest add dialog
-# etc.
-```
-
-Currently installed components:
-
-- `components/ui/button.tsx` — Button with size and style variants
-
----
-
-## Claude AI
-
-This project ships with Claude fully wired up — a working streaming chat UI is on the home page.
-
-### Setup
-
-```bash
-# Add your API key to .env.local file
-ANTHROPIC_API_KEY=your_api_key_here
-```
-
-Get a key at [console.anthropic.com](https://console.anthropic.com).
-
-### How it works
-
-| File | Role |
-|------|------|
-| `app/api/chat/route.ts` | Next.js Route Handler — streams Claude responses |
-| `components/chat.tsx` | Client component — chat UI with streaming support |
-| `app/page.tsx` | Home page — renders `<Chat />` |
-
-**Model:** `claude-opus-4-6` with `thinking: { type: "adaptive" }` (Anthropic's most capable model with adaptive reasoning).
-
-To change the model, system prompt, or add tools, edit [app/api/chat/route.ts](app/api/chat/route.ts).
-
-**Anthropic SDK docs:** [docs.anthropic.com](https://docs.anthropic.com)
+This license was chosen deliberately. Editorial management systems are delivered as SaaS. AGPLv3 requires that any hosted version of this software — including hosted forks — make their source code available. This prevents the system from being commercialized into a closed product, which is exactly the problem this project is trying to solve.
 
 ---
 
@@ -78,56 +90,75 @@ To change the model, system prompt, or add tools, edit [app/api/chat/route.ts](a
 
 ```
 ├── app/
-│   ├── api/chat/route.ts # Claude streaming API route
-│   ├── globals.css       # Tailwind v4 global styles
-│   ├── layout.tsx        # Root layout (Geist font)
-│   └── page.tsx          # Home page — renders <Chat />
+│   ├── api/
+│   │   └── chat/route.ts     # Claude streaming API route
+│   ├── globals.css            # Tailwind v4 global styles
+│   ├── layout.tsx             # Root layout (Geist font)
+│   └── page.tsx               # Home page
 ├── components/
-│   ├── chat.tsx          # Chat UI client component
-│   └── ui/               # Shadcn components (you own these)
+│   ├── chat.tsx               # Chat UI client component
+│   └── ui/                    # Shadcn components (you own these)
 ├── lib/
-│   └── utils.ts          # cn() helper (tailwind-merge + clsx)
-├── CLAUDE.md             # Claude Code project guide
-├── components.json       # Shadcn configuration
-└── next.config.ts        # Next.js configuration
+│   └── utils.ts               # cn() helper (tailwind-merge + clsx)
+├── CLAUDE.md                  # Claude Code project guide
+├── components.json            # Shadcn configuration
+└── next.config.ts             # Next.js configuration
 ```
 
 ---
 
-## Getting Started
+## Installation
+
+Installation is designed to be guided by a Claude agent. Open `INSTALL.md` in Claude Code and follow the prompts — the document is written for an AI agent to execute, with exact commands, environment variable templates, and verification steps.
+
+### Quick start (development)
 
 ```bash
-# 1. Install dependencies
+# 1. Clone and install dependencies
 npm install
 
-# 2. Add your Anthropic API key
-echo "ANTHROPIC_API_KEY=sk-ant-..." > .env.local
+# 2. Copy environment template and fill in values
+cp .env.example .env.local
 
-# 3. Start the dev server
+# 3. Start all services (app + Postgres/AGE + MinIO)
+docker compose up -d
+
+# 4. Run database migrations
+npm run db:migrate
+
+# 5. Start the dev server
 npm run dev
 ```
 
-Open [http://localhost:3000](http://localhost:3000) — you'll see a working Claude chat interface.
+Open [http://localhost:3000](http://localhost:3000).
+
+### Deployment targets
+
+Most managed Postgres services (AWS RDS, Supabase, Aiven) do not support the Apache AGE extension and cannot be used. Only two managed database services support AGE:
+
+| Tier | Database | App | Storage | Best for |
+|---|---|---|---|---|
+| **1 — Recommended** | Railway (AGE one-click template) | Railway (Docker container) | Cloudflare R2 or AWS S3 | Small editorial offices; no server management |
+| **2 — Enterprise** | Azure PostgreSQL Flexible Server (AGE fully managed) | Azure Container Apps | Azure Blob or S3 | Institutions needing HA, backups, PITR |
+| **3 — AWS** | Elastic Beanstalk container (apache/age image) | Elastic Beanstalk | AWS S3 | Teams already in the AWS ecosystem |
+| **4 — Self-hosted** | Docker Compose (apache/age image + MinIO) | Docker Compose | MinIO or any S3 | Technical teams, lowest cost |
+
+**Why not Vercel?** Agentic Claude tasks can run longer than Vercel's 60-second serverless timeout. All deployment tiers use persistent containers for the app layer.
+
+**Why not AWS RDS?** RDS does not support Apache AGE. Postgres must run in a container on AWS (Tiers 3 and 4).
 
 ---
 
-## Notes
+## MCP Servers
 
-- Next.js is installed with the App Router, which uses a separate directory for each page. This allows for a new CLAUDE.md to be added to each directory to give granular instructions to Claude
-about how each page should work and what it should do. 
-**Installed MCP Servers** (configured in `.mcp.json`):
+Configured in `.mcp.json`:
 
-- [Shadcn MCP Server](https://github.com/ahonn/mcp-server-shadcn) — Gives Claude direct access to the Shadcn/ui component registry. Claude can browse, search, and view component examples without leaving the editor.
-- [Context7 MCP](https://github.com/upstash/context7) — Fetches up-to-date documentation for Next.js, React, Tailwind, and Shadcn on demand. Prevents Claude from generating code against outdated APIs (critical since all four core libraries are recent major versions).
-- [Puppeteer MCP Server](https://github.com/merajmehrabi/puppeteer-mcp-server) — Lets Claude navigate the running app, click buttons, fill forms, and take screenshots. Closes the loop on feature verification so Claude can confirm things actually work end-to-end.
+- [Shadcn MCP Server](https://github.com/ahonn/mcp-server-shadcn) — Claude can browse and add Shadcn components directly
+- [Context7 MCP](https://github.com/upstash/context7) — Fetches up-to-date docs for Next.js, React, Tailwind, and Shadcn on demand
+- [Puppeteer MCP Server](https://github.com/merajmehrabi/puppeteer-mcp-server) — Claude can navigate the running app and verify features end-to-end
+- [Postgres MCP](https://github.com/modelcontextprotocol/servers/tree/main/src/postgres) — Claude can query the workflow graph and manuscript history directly via Cypher (through AGE) and SQL. Add this to `.mcp.json` early — it makes iterating on the graph model much faster.
 
-**Additional MCP Servers to consider** depending on your project's needs:
-
-- [GitHub MCP](https://github.com/github/github-mcp-server) — Useful if you're using GitHub for issues and PRs. Lets Claude create issues, open PRs, and read comments without leaving the editor. Most valuable once the project has a team or a growing backlog.
-- [Figma MCP](https://github.com/GLips/Figma-Context-MCP) — Strong fit for Tailwind + Shadcn workflows. If designs live in Figma, Claude can read component specs and translate them directly into Tailwind classes and Shadcn primitives.
-- [Vercel MCP](https://vercel.com/blog/vercel-mcp-server) — Lets Claude check deployment status, manage environment variables, and read logs without leaving the editor. Most useful once the project is deployed.
-- [Storybook MCP](https://storybook.js.org/blog/storybook-mcp) — Useful for component-heavy projects that use Storybook for isolated component development and documentation. Less necessary if Shadcn covers your component needs.
-- **Database MCPs** (e.g. [Postgres](https://github.com/modelcontextprotocol/servers/tree/main/src/postgres), [Supabase](https://github.com/supabase-community/supabase-mcp)) — Only relevant once the project adds a persistent data layer.
+---
 
 ## Tech References
 
@@ -136,11 +167,4 @@ about how each page should work and what it should do.
 - [Tailwind CSS Docs](https://tailwindcss.com/docs)
 - [Shadcn/ui Components](https://ui.shadcn.com/docs/components)
 - [Anthropic API Docs](https://docs.anthropic.com)
-- [Anthropic Console](https://console.anthropic.com) (API keys)
-- [Lucide Icons](https://lucide.dev) (included)
-
-## Deploy
-
-The easiest deployment target is [Vercel](https://vercel.com/new) — zero-config for Next.js apps.
-
-See the [Next.js deployment docs](https://nextjs.org/docs/app/building-your-application/deploying) for other options.
+- [Lucide Icons](https://lucide.dev)
