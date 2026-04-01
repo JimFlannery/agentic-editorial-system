@@ -1,6 +1,6 @@
-# OSS Editorial Management System
+# Agentic Editorial System
 
-An open-source editorial management system for academic and scientific publishing, built on a graph database workflow engine and the TRAINS stack. Licensed under [AGPLv3](LICENSE).
+An open-source agentic editorial system for academic and scientific publishing, built on a graph database workflow engine and the TRAINS stack. Licensed under [AGPLv3](LICENSE).
 
 > **Status:** Early planning / pre-development
 
@@ -50,7 +50,28 @@ One installation hosts multiple journals. Each journal has its own editorial tea
 
 ## Agentic AI Integration
 
-Because the workflow is a graph, AI agents can traverse and act on it naturally. The first planned agentic feature is **AI-assisted reviewer selection**:
+Because the workflow is a graph, AI agents can traverse and act on it naturally. Two core agentic features are planned.
+
+### 1. AI-Assisted Workflow Configuration (Admin Panel)
+
+The graph model solves the vendor lock-in problem — but only if administrators can actually author and modify workflow graphs. Editors migrating from ScholarOne or Editorial Manager are domain experts, not graph database engineers. The raw graph should not be the default interface.
+
+The admin panel includes a **Claude chat interface for workflow configuration**. An administrator describes their workflow in plain language:
+
+> *"We need three reviewers for a research article. If all three submit within 21 days, the editor is notified. If one is late, send them a reminder and give a 7-day extension. If two are late after the extension, escalate to the Editor-in-Chief."*
+
+Claude translates this into graph mutations — creating Gate nodes, setting thresholds, wiring outcome relationships — and then renders a **linear visual of the resulting workflow** back to the administrator for confirmation before committing. The visual is the primary feedback loop; the graph itself is accessible for power admins but not the default view.
+
+This makes the system self-documenting: the workflow description the admin provided *is* the documentation, and the visual confirms the system understood it correctly.
+
+**How it works:**
+1. Admin describes desired workflow in the chat
+2. Claude generates the Cypher mutations needed and explains each change in plain language
+3. A linear workflow diagram is rendered for admin review
+4. Admin confirms (or clarifies) — mutations are committed only on confirmation
+5. The graph view is available as an advanced option for administrators who want direct visibility
+
+### 2. AI-Assisted Reviewer Selection
 
 An assistant editor triggers the agent, which queries the graph for:
 - Reviewers with matching subject area expertise

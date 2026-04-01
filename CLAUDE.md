@@ -1,4 +1,4 @@
-# OSS Editorial Management System — Claude Code Guide
+# Agentic Editorial System — Claude Code Guide
 
 This is a **TRAINS** stack project: **T**ailwind · **R**eact · **AI** · **N**ext.js · **S**hadcn
 
@@ -252,6 +252,56 @@ The `target: "DYNAMIC:Review:overdue"` is resolved at evaluation time — the ap
 
 ---
 
+## Admin Workflow Configuration (AI-Assisted)
+
+The graph model is powerful but not directly operable by non-technical administrators. Editors migrating from Editorial Manager or ScholarOne are domain experts, not graph engineers. Claude is the translation layer.
+
+### Admin Panel Design Principle
+
+The **raw graph is not the default admin interface**. The default interface is a Claude chat in the admin panel where administrators describe their workflow in plain language. Claude translates this into graph mutations and renders a linear workflow visual for confirmation. The graph view is accessible as a power-admin option.
+
+### Workflow Configuration Chat — API Route
+
+`app/api/admin/workflow-chat/route.ts` handles the admin workflow configuration chat. Unlike the general chat route, this route:
+
+- Has access to **graph read/write tools** (via Claude tool use)
+- Is scoped to a specific `journal_id` (passed in the request, verified against the authenticated admin's permissions)
+- Operates in a **confirm-before-commit** pattern: Claude stages mutations and describes them in plain language; the admin sends an explicit confirmation message before the mutations are applied
+- After committing, returns a **linearised workflow representation** (ordered list of steps with branching shown inline) for the admin to verify
+
+### Tool use in the workflow config agent
+
+Use Claude tool use with discrete, named tools so the admin can see what the agent is doing:
+
+| Tool | Purpose |
+|---|---|
+| `get_workflow` | Fetch the current WorkflowDefinition subgraph for a journal |
+| `describe_workflow` | Convert a graph subgraph to a human-readable linear description |
+| `stage_mutations` | Prepare Cypher mutations without applying them; returns a plain-language diff |
+| `commit_mutations` | Apply staged mutations — only callable after admin confirms |
+| `list_gate_types` | Return available Gate types and their required properties |
+| `list_email_templates` | Return email templates available to the journal |
+
+### Linear workflow visual
+
+When rendering a workflow for admin review, output a linear step list in this format — branches are shown as indented sub-lists:
+
+```
+1. Manuscript submitted by Author
+2. Assigned to Assistant Editor
+3. Invitations sent to 3 Reviewers
+4. [GATE] 3 reviews submitted within 21 days?
+   ├── PASS → Editor decision task created
+   └── FAIL → Late reminder sent to overdue reviewers; 7-day extension
+              [GATE] Still missing reviews after extension?
+              ├── PASS → Editor decision task created
+              └── ESCALATE → Editor-in-Chief notified
+```
+
+This format is renderable in Markdown and in a React component — do not require a graph rendering library for the default view.
+
+---
+
 ## Agentic AI Pattern
 
 Claude agents will traverse the graph to perform multi-step editorial tasks. The first target is **reviewer selection**:
@@ -290,8 +340,10 @@ lib/
 app/
   api/workflow/           # Workflow state API routes
   api/agent/              # Agentic task API routes
+  api/admin/workflow-chat/route.ts  # Workflow config chat (admin panel)
   dashboard/              # Editor dashboard
   submission/             # Author submission flow
+  admin/                  # Admin panel (journal config, workflow builder)
 ```
 
 ---
