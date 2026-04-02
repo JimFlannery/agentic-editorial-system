@@ -17,7 +17,8 @@
       "WebFetch(domain:docs.railway.com)",
       "WebFetch(domain:techcommunity.microsoft.com)",
       "Bash(ls c:/Users/jim-f/source/repos/oss-editorial-management-system/.env*)",
-      "Bash(docker compose:*)"
+      "Bash(docker compose:*)",
+      "Bash(npx tsc:*)"
     ],
     "additionalDirectories": [
       "c:\\Users\\jim-f\\.claude\\projects\\c--Users-jim-f-source-repos-oss-editorial-management-system\\memory"

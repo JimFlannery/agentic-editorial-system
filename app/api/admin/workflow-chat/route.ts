@@ -134,7 +134,12 @@ async function describeWorkflow(journalId: string, workflowId: string): Promise<
       branchMap.set(String(b.label), { branch_type: String(b.branch_type), next_label: String(b.next_label) })
     }
   }
-  const steps = stepBase.map((s) => ({ ...s, ...(branchMap.get(String(s.label)) ?? {}) }))
+  const steps = stepBase.map((s) => ({
+    label: String(s.label ?? ""),
+    type: s.type as string | undefined,
+    position: s.position,
+    ...(branchMap.get(String(s.label)) ?? {}),
+  }))
 
   if (steps.length === 0) {
     return "This workflow has no steps defined yet."
@@ -155,6 +160,124 @@ async function describeWorkflow(journalId: string, workflowId: string): Promise<
     order++
   }
   return lines.join("\n")
+}
+
+async function queryManuscripts(
+  journalId: string,
+  status?: string,
+  limit = 15
+): Promise<unknown> {
+  const manuscripts = await sql<{
+    id: string
+    title: string
+    status: string
+    manuscript_type: string
+    submitted_at: string
+    updated_at: string
+    assigned_editor_id: string | null
+  }>(
+    `SELECT id, title, status, manuscript_type, submitted_at, updated_at, assigned_editor_id
+     FROM manuscript.manuscripts
+     WHERE journal_id = $1
+       AND ($2::text IS NULL OR status = $2)
+     ORDER BY updated_at ASC
+     LIMIT $3`,
+    [journalId, status ?? null, limit]
+  ).catch(() => [])
+
+  // Find gates with no outcome (potentially stuck)
+  const stuckGates = await cypher(
+    `MATCH (m:Manuscript {journal_id: '${journalId}'})-[*1..5]->(g:Gate)
+     WHERE g.outcome IS NULL
+     RETURN m.id AS manuscript_id, g.type AS gate_type, g.trigger_event AS trigger`,
+    ["manuscript_id", "gate_type", "trigger"]
+  ).catch(() => [])
+
+  const gateMap = new Map<string, Record<string, unknown>[]>()
+  for (const gate of stuckGates) {
+    const id = String(gate.manuscript_id)
+    if (!gateMap.has(id)) gateMap.set(id, [])
+    gateMap.get(id)!.push(gate)
+  }
+
+  return manuscripts.map((m) => ({
+    ...m,
+    stuck_at_gates: gateMap.get(m.id) ?? [],
+  }))
+}
+
+async function getManuscriptDetails(
+  journalId: string,
+  manuscriptId: string
+): Promise<unknown> {
+  const rows = await sql<{
+    id: string
+    title: string
+    status: string
+    manuscript_type: string
+    submitted_at: string
+    updated_at: string
+    assigned_editor_id: string | null
+  }>(
+    `SELECT id, title, status, manuscript_type, submitted_at, updated_at, assigned_editor_id
+     FROM manuscript.manuscripts
+     WHERE id = $1 AND journal_id = $2`,
+    [manuscriptId, journalId]
+  ).catch(() => [])
+
+  if (rows.length === 0) {
+    return { error: `Manuscript ${manuscriptId} not found in journal ${journalId}` }
+  }
+
+  const [gates, tasks, reviews] = await Promise.all([
+    cypher(
+      `MATCH (m:Manuscript {id: '${manuscriptId}'})-[*1..5]->(g:Gate)
+       RETURN g.type AS type, g.trigger_event AS trigger_event, g.outcome AS outcome,
+              g.evaluated_at AS evaluated_at, g.minimum AS minimum,
+              g.entity AS entity, g.deadline_days AS deadline_days`,
+      ["type", "trigger_event", "outcome", "evaluated_at", "minimum", "entity", "deadline_days"]
+    ).catch(() => []),
+    cypher(
+      `MATCH (m:Manuscript {id: '${manuscriptId}'})-[:HAS_TASK]->(t:Task)
+       RETURN t.name AS name, t.status AS status, t.deadline AS deadline, t.assigned_to AS assigned_to`,
+      ["name", "status", "deadline", "assigned_to"]
+    ).catch(() => []),
+    cypher(
+      `MATCH (r:Reviewer)-[:INVITED_TO_REVIEW]->(m:Manuscript {id: '${manuscriptId}'})
+       RETURN r.name AS reviewer, r.id AS reviewer_id`,
+      ["reviewer", "reviewer_id"]
+    ).catch(() => []),
+  ])
+
+  return {
+    manuscript: rows[0],
+    gates,
+    tasks,
+    review_invitations: reviews,
+  }
+}
+
+async function getManuscriptHistory(
+  manuscriptId: string,
+  limit = 20
+): Promise<unknown> {
+  const events = await sql<{
+    id: string
+    event_type: string
+    actor_type: string
+    payload: unknown
+    created_at: string
+  }>(
+    `SELECT id, event_type, actor_type, payload, created_at
+     FROM history.events
+     WHERE payload->>'manuscript_id' = $1
+        OR payload->>'id' = $1
+     ORDER BY created_at DESC
+     LIMIT $2`,
+    [manuscriptId, limit]
+  ).catch(() => [])
+
+  return { manuscript_id: manuscriptId, events }
 }
 
 async function listEmailTemplates(journalId: string): Promise<unknown> {
@@ -309,43 +432,112 @@ const tools: Anthropic.Tool[] = [
       required: ["mutations"],
     },
   },
+  {
+    name: "query_manuscripts",
+    description:
+      "Find manuscripts for this journal. Use to diagnose problems — e.g. find stuck, overdue, or unassigned manuscripts. " +
+      "Returns manuscript metadata plus any gates with no recorded outcome.",
+    input_schema: {
+      type: "object" as const,
+      properties: {
+        status: {
+          type: "string",
+          description: "Optional status filter (e.g. 'under_review', 'awaiting_decision'). Omit to return all statuses.",
+        },
+        limit: {
+          type: "number",
+          description: "Maximum number of results to return. Defaults to 15.",
+        },
+      },
+      required: [],
+    },
+  },
+  {
+    name: "get_manuscript_details",
+    description:
+      "Get the full current state of a specific manuscript: metadata, active gates and their outcomes, " +
+      "open tasks, and reviewer invitations. Use this to diagnose why a manuscript is stuck or stalled.",
+    input_schema: {
+      type: "object" as const,
+      properties: {
+        manuscript_id: {
+          type: "string",
+          description: "The ID of the manuscript to inspect",
+        },
+      },
+      required: ["manuscript_id"],
+    },
+  },
+  {
+    name: "get_manuscript_history",
+    description:
+      "Fetch the event log for a specific manuscript from the history table. " +
+      "Useful for understanding what happened and when, and for diagnosing where a workflow went wrong.",
+    input_schema: {
+      type: "object" as const,
+      properties: {
+        manuscript_id: {
+          type: "string",
+          description: "The ID of the manuscript",
+        },
+        limit: {
+          type: "number",
+          description: "Number of events to return, most recent first. Defaults to 20.",
+        },
+      },
+      required: ["manuscript_id"],
+    },
+  },
 ]
 
 // ---------------------------------------------------------------------------
 // System prompt
 // ---------------------------------------------------------------------------
 
-const SYSTEM_PROMPT = `You are an editorial workflow configuration assistant for an academic journal management system.
+const SYSTEM_PROMPT = `You are an editorial assistant for an academic journal management system. You have two modes: workflow configuration and troubleshooting.
 
-You help journal administrators define and modify manuscript review workflows using plain language. The workflows are stored as a property graph (using Apache AGE / Cypher). You are the translation layer between plain language and the graph.
+## Mode 1 — Workflow configuration
+Help administrators define and modify manuscript review workflows using plain language. The workflows are stored as a property graph (Apache AGE / Cypher). You are the translation layer.
 
-## Your responsibilities
 - Listen to the admin describe their workflow in natural language
-- Use your tools to read the current workflow state
-- Stage mutations as discrete, named steps with plain-language descriptions
-- Always show the admin a summary of staged changes and wait for explicit confirmation ("yes", "confirm", "apply") before calling commit_mutations
-- After committing, describe what was changed in plain language
+- Use get_workflow / describe_workflow to read current state before making changes
+- Stage mutations as discrete named steps with plain-language descriptions
+- Always show a summary of staged changes and wait for explicit confirmation before calling commit_mutations
+- After committing, describe what changed in plain language
 
-## Workflow building rules
-- Every workflow belongs to the current journal (journal_id is provided in context)
-- Workflows have a name and manuscript_type (e.g. "research_article", "review_article")
-- Steps are connected by [:NEXT] relationships
-- Gates use typed outcome relationships: [:ON_PASS], [:ON_FAIL], [:ON_ESCALATE], [:ON_TIMEOUT]
-- Gate nodes require a type property — always call list_gate_types if unsure what types are available
+Workflow rules:
+- Every workflow belongs to the current journal (journal_id is in context)
+- Steps connect via [:NEXT]; gates use [:ON_PASS], [:ON_FAIL], [:ON_ESCALATE], [:ON_TIMEOUT]
+- Gate nodes require a type — call list_gate_types if unsure
+
+## Mode 2 — Troubleshooting
+When an admin reports a problem ("manuscript X is stuck", "reviewer never got an invitation", "decision hasn't gone out"), diagnose and fix it.
+
+Diagnostic approach:
+1. Call query_manuscripts to find affected manuscripts (filter by status if the admin specifies one)
+2. Call get_manuscript_details on the specific manuscript to see its gate states, tasks, and reviewer invitations
+3. Call get_manuscript_history to see the event log and identify where things went wrong
+4. Explain clearly what you found: which gate is stuck, what was expected vs. what happened, why
+5. If a fix is needed, stage the corrective mutations and describe them in plain language before committing
+
+Common problems and fixes:
+- Gate stuck with no outcome: MATCH the gate node, SET g.outcome = 'PASS' (or appropriate outcome) to unblock it
+- Missing task or assignment: CREATE the missing Task node and relate it to the Manuscript
+- Reviewer invitation not sent: Check review_invitations in get_manuscript_details; stage the missing [:INVITED_TO_REVIEW] relationship
+- Wrong status on manuscript: MATCH the Manuscript, SET m.status = 'correct_status'
 
 ## Cypher syntax rules (Apache AGE dialect)
-- Use single quotes for all string values: {name: 'value'} NOT {name: "value"}
-- Do NOT use SQL functions like gen_random_uuid() — AGE does not support SQL functions in Cypher
-- Use simple string IDs derived from the journal_id and a short name: e.g. {id: 'journal-id/standard-workflow'}
-- Every CREATE statement must be a plain Cypher expression with no RETURN clause
-- Keep each mutation to a single CREATE or MATCH...CREATE or MATCH...SET statement
-- Do NOT wrap queries in SELECT * FROM cypher(...) — that is handled by the system
+- Single quotes only: {name: 'value'} NOT {name: "value"}
+- No SQL functions inside Cypher (no gen_random_uuid(), no now())
+- Use string IDs derived from journal_id: e.g. {id: 'journal-id/node-name'}
+- One CREATE or MATCH...SET per mutation
+- Do NOT wrap queries in SELECT * FROM cypher(...)
 
 ## Confirm-before-commit rule
-NEVER call commit_mutations without first calling stage_mutations and receiving an explicit confirmation from the admin. If the admin says "yes", "confirm", "apply", "do it", or similar — that counts as confirmation. Do NOT stage again after confirmation — call commit_mutations directly.
+NEVER call commit_mutations without first calling stage_mutations and receiving explicit confirmation ("yes", "confirm", "apply", "do it"). Do NOT stage again after confirmation — go straight to commit_mutations.
 
 ## Tone
-Be concise and practical. Admins are domain experts (editors, journal managers), not graph engineers. Avoid technical jargon. When showing staged changes, use the numbered linear format from the system documentation.`
+Be concise. Admins are editorial domain experts, not engineers. Avoid graph/database jargon. When reporting a diagnosis, lead with what's wrong and what you can do to fix it.`
 
 // ---------------------------------------------------------------------------
 // Route handler
@@ -438,6 +630,22 @@ export async function POST(req: Request) {
                 }
                 case "commit_mutations":
                   result = await commitMutations(journalId, input.mutations as StagedMutation[])
+                  break
+                case "query_manuscripts":
+                  result = await queryManuscripts(
+                    journalId,
+                    input.status as string | undefined,
+                    input.limit as number | undefined
+                  )
+                  break
+                case "get_manuscript_details":
+                  result = await getManuscriptDetails(journalId, input.manuscript_id as string)
+                  break
+                case "get_manuscript_history":
+                  result = await getManuscriptHistory(
+                    input.manuscript_id as string,
+                    input.limit as number | undefined
+                  )
                   break
                 default:
                   result = { error: `Unknown tool: ${toolUse.name}` }

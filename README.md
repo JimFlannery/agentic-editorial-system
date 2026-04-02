@@ -56,11 +56,13 @@ One installation hosts multiple journals. Each journal has its own editorial tea
 
 Because the workflow is a graph, AI agents can traverse and act on it naturally. Two core agentic features are planned.
 
-### 1. AI-Assisted Workflow Configuration (Admin Panel)
+### 1. AI-Assisted Workflow Configuration and Troubleshooting (Admin Panel)
 
 The graph model solves the vendor lock-in problem — but only if administrators can actually author and modify workflow graphs. Editors migrating from ScholarOne or Editorial Manager are domain experts, not graph database engineers. The raw graph should not be the default interface.
 
-The admin panel includes a **Claude chat interface for workflow configuration**. An administrator describes their workflow in plain language:
+The admin panel includes a **Claude chat interface** that operates in two modes.
+
+**Workflow configuration:** An administrator describes their workflow in plain language:
 
 > *"We need three reviewers for a research article. If all three submit within 21 days, the editor is notified. If one is late, send them a reminder and give a 7-day extension. If two are late after the extension, escalate to the Editor-in-Chief."*
 
@@ -68,12 +70,26 @@ Claude translates this into graph mutations — creating Gate nodes, setting thr
 
 This makes the system self-documenting: the workflow description the admin provided *is* the documentation, and the visual confirms the system understood it correctly.
 
-**How it works:**
+**Troubleshooting:** When something goes wrong — a manuscript is stuck, a reviewer never got an invitation, a decision email didn't go out — the admin describes the problem in the same chat and Claude diagnoses it:
+
+> *"Manuscript 47 hasn't moved in two weeks."*
+
+Claude queries the manuscript's current gate state, task assignments, reviewer invitations, and event history, then explains what went wrong and what it will do to fix it. The same confirm-before-commit rule applies — Claude stages the corrective action and waits for explicit approval. No support ticket, no vendor call.
+
+This makes editorial offices genuinely self-reliant. Routine problems that previously required vendor or IT involvement can be diagnosed and resolved by the editorial team themselves.
+
+**How configuration works:**
 1. Admin describes desired workflow in the chat
 2. Claude generates the Cypher mutations needed and explains each change in plain language
 3. A linear workflow diagram is rendered for admin review
 4. Admin confirms (or clarifies) — mutations are committed only on confirmation
 5. The graph view is available as an advanced option for administrators who want direct visibility
+
+**How troubleshooting works:**
+1. Admin describes the problem in plain language
+2. Claude queries manuscripts, gate states, tasks, and the event log
+3. Claude explains what went wrong and proposes a fix
+4. Admin confirms — corrective mutations are applied only on confirmation
 
 ### 2. AI-Assisted Reviewer Selection
 
@@ -158,9 +174,12 @@ This license was chosen deliberately. Editorial management systems are delivered
 - **Email Templates** (`/admin/email-templates`) — `EmailTemplate` nodes from the graph
 - **Workflow Config** (`/admin/workflow`) — AI chat interface for configuring workflows in plain language (see below)
 
-### AI Workflow Configuration
-- **`/api/admin/workflow-chat`** — Claude agent with six tools: `get_workflow`, `describe_workflow`, `list_gate_types`, `list_email_templates`, `stage_mutations`, `commit_mutations`
-- **Confirm-before-commit pattern** — Claude stages mutations with plain-language descriptions; a UI panel surfaces a "Confirm & apply" button before anything is written to the graph
+### AI Workflow Configuration and Troubleshooting
+- **`/api/admin/workflow-chat`** — Claude agent with nine tools across two modes:
+  - *Configuration:* `get_workflow`, `describe_workflow`, `list_gate_types`, `list_email_templates`, `stage_mutations`, `commit_mutations`
+  - *Troubleshooting:* `query_manuscripts`, `get_manuscript_details`, `get_manuscript_history`
+- **Confirm-before-commit pattern** — applies to both configuration and fixes; Claude stages changes with plain-language descriptions before anything is written to the graph
+- **Self-reliant editorial offices** — admins can diagnose and fix stuck manuscripts, missing assignments, and stalled gates through the same chat interface, with no vendor or IT involvement
 - **Verified end-to-end** — a Standard Peer Review workflow (5 steps, 1 gate with `ON_PASS`/`ON_TIMEOUT` branches) was configured via chat and committed to the graph
 
 ### Home Page
