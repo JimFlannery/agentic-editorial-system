@@ -31,6 +31,11 @@ const sections = [
     title: "Email Templates",
     description: "Manage reusable email templates for workflow communications.",
   },
+  {
+    href: "/admin/troubleshooting",
+    title: "Troubleshooting",
+    description: "Describe a problem and Claude will diagnose it — querying manuscripts, gates, and the event log to find the root cause.",
+  },
 ]
 
 export default function AdminHomePage() {

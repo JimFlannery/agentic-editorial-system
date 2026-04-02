@@ -11,14 +11,29 @@ import {
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
-import { addManuscriptType } from "./actions"
+import { addManuscriptType, editManuscriptType } from "./actions"
 
 interface Journal {
   id: string
   name: string
 }
 
-export function AddManuscriptTypeDialog({ journals }: { journals: Journal[] }) {
+interface ManuscriptType {
+  id: string
+  name: string
+  acronym: string
+  description: string | null
+  display_order: number
+  active: boolean
+}
+
+interface Props {
+  journals: Journal[]
+  type?: ManuscriptType
+}
+
+export function AddManuscriptTypeDialog({ journals, type }: Props) {
+  const isEdit = !!type
   const [open, setOpen] = useState(false)
   const [error, setError] = useState<string | null>(null)
   const formRef = useRef<HTMLFormElement>(null)
@@ -26,9 +41,13 @@ export function AddManuscriptTypeDialog({ journals }: { journals: Journal[] }) {
   async function handleSubmit(formData: FormData) {
     setError(null)
     try {
-      await addManuscriptType(formData)
+      if (isEdit) {
+        await editManuscriptType(type!.id, formData)
+      } else {
+        await addManuscriptType(formData)
+        formRef.current?.reset()
+      }
       setOpen(false)
-      formRef.current?.reset()
     } catch (e) {
       setError(e instanceof Error ? e.message : "Something went wrong")
     }
@@ -36,46 +55,67 @@ export function AddManuscriptTypeDialog({ journals }: { journals: Journal[] }) {
 
   return (
     <Dialog open={open} onOpenChange={setOpen}>
-      <DialogTrigger render={<Button />}>Add type</DialogTrigger>
+      <DialogTrigger render={isEdit
+        ? <button className="text-xs text-zinc-400 hover:text-zinc-700 dark:hover:text-zinc-200 transition-colors" />
+        : <Button />
+      }>
+        {isEdit ? "Edit" : "Add type"}
+      </DialogTrigger>
       <DialogContent className="sm:max-w-md">
         <DialogHeader>
-          <DialogTitle>Add manuscript type</DialogTitle>
+          <DialogTitle>{isEdit ? "Edit manuscript type" : "Add manuscript type"}</DialogTitle>
         </DialogHeader>
         <form ref={formRef} action={handleSubmit} className="space-y-4 pt-2">
-          <div className="space-y-1.5">
-            <Label htmlFor="journal_id">Journal <span className="text-red-500">*</span></Label>
-            <select
-              id="journal_id"
-              name="journal_id"
-              required
-              className="w-full rounded-md border border-zinc-200 dark:border-zinc-800 bg-white dark:bg-zinc-950 px-3 py-2 text-sm text-zinc-900 dark:text-zinc-100 focus:outline-none focus:ring-2 focus:ring-zinc-500"
-            >
-              <option value="">Select a journal…</option>
-              {journals.map((j) => (
-                <option key={j.id} value={j.id}>{j.name}</option>
-              ))}
-            </select>
-          </div>
+          {!isEdit && (
+            <div className="space-y-1.5">
+              <Label htmlFor="journal_id">Journal <span className="text-red-500">*</span></Label>
+              <select
+                id="journal_id"
+                name="journal_id"
+                required
+                className="w-full rounded-md border border-zinc-200 dark:border-zinc-800 bg-white dark:bg-zinc-950 px-3 py-2 text-sm text-zinc-900 dark:text-zinc-100 focus:outline-none focus:ring-2 focus:ring-zinc-500"
+              >
+                <option value="">Select a journal…</option>
+                {journals.map((j) => (
+                  <option key={j.id} value={j.id}>{j.name}</option>
+                ))}
+              </select>
+            </div>
+          )}
           <div className="space-y-1.5">
             <Label htmlFor="name">Name <span className="text-red-500">*</span></Label>
-            <Input id="name" name="name" placeholder="Original Research" required />
+            <Input id="name" name="name" placeholder="Original Research" required defaultValue={type?.name} />
           </div>
           <div className="space-y-1.5">
             <Label htmlFor="acronym">Acronym <span className="text-red-500">*</span></Label>
-            <Input id="acronym" name="acronym" placeholder="OR" className="uppercase" required />
+            <Input id="acronym" name="acronym" placeholder="OR" className="uppercase" required defaultValue={type?.acronym} />
           </div>
           <div className="space-y-1.5">
             <Label htmlFor="description">Description</Label>
-            <Input id="description" name="description" placeholder="Optional description" />
+            <Input id="description" name="description" placeholder="Optional description" defaultValue={type?.description ?? ""} />
           </div>
           <div className="space-y-1.5">
             <Label htmlFor="display_order">Display order</Label>
-            <Input id="display_order" name="display_order" type="number" defaultValue="0" min="0" />
+            <Input id="display_order" name="display_order" type="number" min="0" defaultValue={type?.display_order ?? 0} />
           </div>
+          {isEdit && (
+            <div className="space-y-1.5">
+              <Label htmlFor="active">Status</Label>
+              <select
+                id="active"
+                name="active"
+                defaultValue={type?.active ? "true" : "false"}
+                className="w-full rounded-md border border-zinc-200 dark:border-zinc-800 bg-white dark:bg-zinc-950 px-3 py-2 text-sm text-zinc-900 dark:text-zinc-100 focus:outline-none focus:ring-2 focus:ring-zinc-500"
+              >
+                <option value="true">Active</option>
+                <option value="false">Inactive</option>
+              </select>
+            </div>
+          )}
           {error && <p className="text-sm text-red-500">{error}</p>}
           <div className="flex justify-end gap-2 pt-2">
             <Button type="button" variant="outline" onClick={() => setOpen(false)}>Cancel</Button>
-            <Button type="submit">Add type</Button>
+            <Button type="submit">{isEdit ? "Save changes" : "Add type"}</Button>
           </div>
         </form>
       </DialogContent>

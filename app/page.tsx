@@ -61,18 +61,46 @@ const features = [
   },
 ];
 
-const links = [
+const centers = [
   {
     href: "/admin",
-    label: "Admin console",
+    label: "System Admin",
     description: "Manage journals, users, workflows, and email templates.",
-    primary: true,
+    role: "System administrator",
   },
   {
-    href: "/admin/workflow",
-    label: "Configure workflows",
-    description: "Use the AI assistant to define or modify review workflows.",
-    primary: false,
+    href: "/journal-admin",
+    label: "Journal Admin",
+    description: "Admin checklist queue, manuscript intake, and routing to the editorial team.",
+    role: "Editorial support",
+  },
+  {
+    href: "#",
+    label: "Editor-in-Chief",
+    description: "Assign associate editors, make final decisions, and monitor journal health.",
+    role: "Editor-in-Chief",
+    soon: true,
+  },
+  {
+    href: "#",
+    label: "Associate Editor",
+    description: "Select and invite reviewers, track review progress, and submit recommendations.",
+    role: "Associate Editor",
+    soon: true,
+  },
+  {
+    href: "#",
+    label: "Reviewer",
+    description: "Access assigned manuscripts, submit reviews, and manage review invitations.",
+    role: "Reviewer",
+    soon: true,
+  },
+  {
+    href: "#",
+    label: "Author",
+    description: "Submit manuscripts, track status, respond to revision requests.",
+    role: "Author",
+    soon: true,
   },
 ];
 
@@ -87,10 +115,16 @@ export default function Home() {
           </span>
           <nav className="ml-auto flex items-center gap-1">
             <Link
+              href="/journal-admin"
+              className="text-sm text-zinc-500 dark:text-zinc-400 hover:text-zinc-900 dark:hover:text-zinc-100 px-3 py-1.5 rounded-md hover:bg-zinc-100 dark:hover:bg-zinc-800 transition-colors"
+            >
+              Journal Admin
+            </Link>
+            <Link
               href="/admin"
               className="text-sm text-zinc-500 dark:text-zinc-400 hover:text-zinc-900 dark:hover:text-zinc-100 px-3 py-1.5 rounded-md hover:bg-zinc-100 dark:hover:bg-zinc-800 transition-colors"
             >
-              Admin
+              System Admin
             </Link>
             <ThemeToggle />
           </nav>
@@ -112,19 +146,58 @@ export default function Home() {
             conflict detection, and deadline tracking.
           </p>
           <div className="flex flex-wrap gap-3">
-            {links.map((l) => (
-              <Link
-                key={l.href}
-                href={l.href}
-                className={
-                  l.primary
-                    ? "rounded-lg bg-zinc-900 dark:bg-zinc-100 text-white dark:text-zinc-900 text-sm font-medium px-5 py-2.5 hover:opacity-90 transition-opacity"
-                    : "rounded-lg border border-zinc-200 dark:border-zinc-700 text-zinc-700 dark:text-zinc-300 text-sm font-medium px-5 py-2.5 hover:bg-zinc-50 dark:hover:bg-zinc-900 transition-colors"
-                }
-              >
-                {l.label}
-              </Link>
-            ))}
+            <Link
+              href="/journal-admin"
+              className="rounded-lg bg-zinc-900 dark:bg-zinc-100 text-white dark:text-zinc-900 text-sm font-medium px-5 py-2.5 hover:opacity-90 transition-opacity"
+            >
+              Journal Admin Center
+            </Link>
+            <Link
+              href="/admin"
+              className="rounded-lg border border-zinc-200 dark:border-zinc-700 text-zinc-700 dark:text-zinc-300 text-sm font-medium px-5 py-2.5 hover:bg-zinc-50 dark:hover:bg-zinc-900 transition-colors"
+            >
+              System Admin
+            </Link>
+          </div>
+        </section>
+
+        {/* Divider */}
+        <div className="border-t border-zinc-100 dark:border-zinc-900" />
+
+        {/* Role Centers */}
+        <section className="py-16">
+          <h2 className="text-xs font-medium text-zinc-400 uppercase tracking-widest mb-2">
+            Role Centers
+          </h2>
+          <p className="text-sm text-zinc-500 dark:text-zinc-400 mb-8">
+            Each role has a dedicated center. Auth is not yet enabled — all centers are accessible directly.
+          </p>
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3">
+            {centers.map((c) =>
+              c.soon ? (
+                <div
+                  key={c.label}
+                  className="rounded-xl border border-dashed border-zinc-200 dark:border-zinc-800 px-5 py-4 opacity-60"
+                >
+                  <div className="flex items-baseline justify-between mb-1">
+                    <p className="font-medium text-zinc-900 dark:text-zinc-100 text-sm">{c.label}</p>
+                    <span className="text-xs text-zinc-400 bg-zinc-100 dark:bg-zinc-800 px-1.5 py-0.5 rounded">Soon</span>
+                  </div>
+                  <p className="text-xs text-zinc-400 dark:text-zinc-500 mb-2 leading-relaxed">{c.description}</p>
+                  <p className="text-xs text-zinc-400">{c.role}</p>
+                </div>
+              ) : (
+                <Link
+                  key={c.label}
+                  href={c.href}
+                  className="block rounded-xl border border-zinc-200 dark:border-zinc-800 bg-white dark:bg-zinc-900 px-5 py-4 hover:border-zinc-400 dark:hover:border-zinc-600 transition-colors"
+                >
+                  <p className="font-medium text-zinc-900 dark:text-zinc-100 text-sm mb-1">{c.label}</p>
+                  <p className="text-xs text-zinc-500 dark:text-zinc-400 mb-2 leading-relaxed">{c.description}</p>
+                  <p className="text-xs text-zinc-400">{c.role}</p>
+                </Link>
+              )
+            )}
           </div>
         </section>
 

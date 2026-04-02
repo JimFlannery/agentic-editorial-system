@@ -34,3 +34,33 @@ export async function addUser(formData: FormData) {
 
   revalidatePath("/admin/users")
 }
+
+export async function editUser(id: string, journalId: string, formData: FormData) {
+  const full_name = (formData.get("full_name") as string)?.trim()
+  const email = (formData.get("email") as string)?.trim()
+  const orcid = (formData.get("orcid") as string)?.trim() || null
+  const roles = formData.getAll("roles") as string[]
+
+  if (!full_name) throw new Error("Full name is required")
+  if (!email) throw new Error("Email is required")
+
+  await sql(
+    `UPDATE manuscript.people SET full_name = $1, email = $2, orcid = $3 WHERE id = $4`,
+    [full_name, email, orcid, id]
+  )
+
+  // Replace roles: delete existing, insert new
+  await sql(
+    `DELETE FROM manuscript.person_roles WHERE person_id = $1 AND journal_id = $2`,
+    [id, journalId]
+  )
+
+  for (const role of roles) {
+    await sql(
+      `INSERT INTO manuscript.person_roles (person_id, journal_id, role) VALUES ($1, $2, $3)`,
+      [id, journalId, role]
+    )
+  }
+
+  revalidatePath("/admin/users")
+}

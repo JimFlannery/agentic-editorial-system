@@ -35,3 +35,26 @@ export async function addEmailTemplate(formData: FormData) {
 
   revalidatePath("/admin/email-templates")
 }
+
+export async function editEmailTemplate(id: string, formData: FormData) {
+  const name = (formData.get("name") as string)?.trim()
+  const subject = (formData.get("subject") as string)?.trim()
+  const description = (formData.get("description") as string)?.trim() || ""
+  const body = (formData.get("body") as string)?.trim()
+
+  if (!name) throw new Error("Name is required")
+  if (!subject) throw new Error("Subject is required")
+  if (!body) throw new Error("Body is required")
+
+  const escape = (s: string) => s.replace(/'/g, "\\'")
+
+  await cypherMutate(
+    `MATCH (t:EmailTemplate {id: '${escape(id)}'})
+     SET t.name = '${escape(name)}',
+         t.subject = '${escape(subject)}',
+         t.body = '${escape(body)}',
+         t.description = '${escape(description)}'`
+  )
+
+  revalidatePath("/admin/email-templates")
+}

@@ -19,6 +19,9 @@ interface Message {
 interface WorkflowChatProps {
   journalId: string
   journalName: string
+  apiPath?: string
+  headerLabel?: string
+  placeholder?: string
 }
 
 // ---------------------------------------------------------------------------
@@ -79,7 +82,13 @@ function StagedChanges({
 // Main component
 // ---------------------------------------------------------------------------
 
-export function WorkflowChat({ journalId, journalName }: WorkflowChatProps) {
+export function WorkflowChat({
+  journalId,
+  journalName,
+  apiPath = "/api/admin/workflow-chat",
+  headerLabel = "Workflow configuration",
+  placeholder = "Describe your workflow… (Enter to send)",
+}: WorkflowChatProps) {
   const [messages, setMessages] = useState<Message[]>([])
   const [input, setInput] = useState("")
   const [isLoading, setIsLoading] = useState(false)
@@ -108,7 +117,7 @@ export function WorkflowChat({ journalId, journalName }: WorkflowChatProps) {
     setMessages([...nextMessages, assistantMessage])
 
     try {
-      const response = await fetch("/api/admin/workflow-chat", {
+      const response = await fetch(apiPath, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ messages: apiMessages, journalId }),
@@ -201,7 +210,7 @@ export function WorkflowChat({ journalId, journalName }: WorkflowChatProps) {
       {/* Header */}
       <div className="border-b border-zinc-200 dark:border-zinc-800 px-5 py-3">
         <p className="text-xs text-zinc-500 dark:text-zinc-400">
-          Workflow configuration — {journalName}
+          {headerLabel} — {journalName}
         </p>
       </div>
 
@@ -209,7 +218,7 @@ export function WorkflowChat({ journalId, journalName }: WorkflowChatProps) {
       <div className="flex-1 overflow-y-auto px-5 py-5 space-y-4">
         {messages.length === 0 && (
           <p className="text-center text-zinc-400 text-sm mt-16 max-w-sm mx-auto leading-relaxed">
-            Describe your manuscript review workflow in plain language. I&apos;ll translate it into the graph for you.
+            {placeholder.replace(" (Enter to send)", "")}
           </p>
         )}
 
@@ -283,7 +292,7 @@ export function WorkflowChat({ journalId, journalName }: WorkflowChatProps) {
       >
         <textarea
           className="flex-1 resize-none rounded-xl border border-zinc-200 dark:border-zinc-700 bg-white dark:bg-zinc-900 px-3 py-2 text-sm text-zinc-900 dark:text-zinc-100 placeholder-zinc-400 focus:outline-none focus:ring-2 focus:ring-zinc-900 dark:focus:ring-zinc-100 min-h-[40px] max-h-[160px]"
-          placeholder="Describe your workflow… (Enter to send)"
+          placeholder={placeholder}
           value={input}
           onChange={(e) => setInput(e.target.value)}
           onKeyDown={handleKeyDown}

@@ -1,8 +1,8 @@
 # Agentic Editorial System
 
-An open-source agentic editorial system for academic and scientific publishing, built on a graph database workflow engine and the TRAINS (Tailwind, React, AI, Next.js, Shadcn) stack. Licensed under [AGPLv3](LICENSE).
+An open-source agentic editorial management system for academic and scientific publishing, built on a graph database workflow engine and the TRAINS (Tailwind, React, AI, Next.js, Shadcn) stack. Licensed under [AGPLv3](LICENSE).
 
-> **Status:** Active development — core stack running, admin console and workflow configuration live
+> **Status:** Active development — core stack, admin console, AI workflow configuration, journal workspace routing, and multi-journal admin architecture live
 
 ---
 
@@ -48,7 +48,7 @@ Example: a `COUNT_THRESHOLD_BY_DEADLINE` gate with `minimum: 3` on a Review Arti
 
 ### Multi-Journal Support
 
-One installation hosts multiple journals. Each journal has its own editorial team, reviewer pool, workflow definitions, and manuscript queue. Roles are journal-scoped — a person can be an editor on one journal and a reviewer on another.
+One installation hosts multiple journals. Each journal has its own editorial team, reviewer pool, workflow definitions, manuscript queue, and configurable settings. Roles are journal-scoped — a person can be an editor on one journal and a reviewer on another. Each journal has a globally unique acronym that serves as its URL slug throughout the system.
 
 ---
 
@@ -68,28 +68,11 @@ The admin panel includes a **Claude chat interface** that operates in two modes.
 
 Claude translates this into graph mutations — creating Gate nodes, setting thresholds, wiring outcome relationships — and then renders a **linear visual of the resulting workflow** back to the administrator for confirmation before committing. The visual is the primary feedback loop; the graph itself is accessible for power admins but not the default view.
 
-This makes the system self-documenting: the workflow description the admin provided *is* the documentation, and the visual confirms the system understood it correctly.
-
 **Troubleshooting:** When something goes wrong — a manuscript is stuck, a reviewer never got an invitation, a decision email didn't go out — the admin describes the problem in the same chat and Claude diagnoses it:
 
 > *"Manuscript 47 hasn't moved in two weeks."*
 
 Claude queries the manuscript's current gate state, task assignments, reviewer invitations, and event history, then explains what went wrong and what it will do to fix it. The same confirm-before-commit rule applies — Claude stages the corrective action and waits for explicit approval. No support ticket, no vendor call.
-
-This makes editorial offices genuinely self-reliant. Routine problems that previously required vendor or IT involvement can be diagnosed and resolved by the editorial team themselves.
-
-**How configuration works:**
-1. Admin describes desired workflow in the chat
-2. Claude generates the Cypher mutations needed and explains each change in plain language
-3. A linear workflow diagram is rendered for admin review
-4. Admin confirms (or clarifies) — mutations are committed only on confirmation
-5. The graph view is available as an advanced option for administrators who want direct visibility
-
-**How troubleshooting works:**
-1. Admin describes the problem in plain language
-2. Claude queries manuscripts, gate states, tasks, and the event log
-3. Claude explains what went wrong and proposes a fix
-4. Admin confirms — corrective mutations are applied only on confirmation
 
 ### 2. AI-Assisted Reviewer Selection
 
@@ -103,32 +86,72 @@ The agent returns a ranked shortlist. The assistant editor confirms or overrides
 
 ---
 
+## Navigation Architecture
+
+The system has two public entry points and a set of role-specific workspaces.
+
+### Entry points
+
+**`/` — Generic landing page.** Represents the publisher or society. Shows role-based "centers" (Author Center, Reviewer Center, Editorial Center) that are not journal-specific. Clicking a center prompts login, then routes to the correct journal workspace based on the user's roles.
+
+**`/journal/[acronym]` — Per-journal landing page.** Each journal has its own landing page (e.g. `/journal/NEJM`) with centers scoped to that journal. Login from here routes directly to that journal — no journal selection step.
+
+### Post-login routing
+
+| Role | Destination |
+|---|---|
+| `author` | `/author/[acronym]` |
+| `reviewer` | `/reviewer/[acronym]` |
+| `assistant_editor`, `editor`, `editor_in_chief`, `editorial_support` | `/journal-admin/[acronym]` |
+| `system_admin` | `/admin` |
+
+Users with the same role on multiple journals are shown a journal picker during login. Users with exactly one journal are routed directly. Once inside a workspace, a journal selector in the header allows switching between journals without returning to the landing page.
+
+---
+
+## Admin Architecture
+
+Two levels of administration with distinct scopes:
+
+### System Admin (`/admin`)
+Manages the installation as a whole. Accessible only to `system_admin` role.
+- **Journals** — add journals, set acronym, disable journals (stop accepting new submissions)
+- System-level settings
+
+### Journal Workspace (`/journal-admin/[acronym]`)
+The editorial office for a specific journal. Accessible to editors and journal-level admins. All data is scoped to the current journal. Sections:
+- **Dashboard** — queue counts and at-a-glance status
+- **Checklist Queue** — newly submitted manuscripts awaiting admin review
+- **Manuscript Types** — submission types (Original Research, Review Article, etc.) with acronyms and workflow links
+- **Workflows** — workflow definitions rendered as linear step lists
+- **Workflow Config** — AI chat interface for configuring workflows in plain language
+- **Email Templates** — reusable email templates attached to workflow communication steps
+- **Users** — people with roles on this journal
+- **Troubleshooting** — AI chat for diagnosing stuck manuscripts and stalled gates
+
+---
+
+## Admin-Configurable Settings
+
+Journal administrators can configure many aspects of the system without code changes. Settings use different storage strategies depending on their nature:
+
+| Type | Storage | Admin UI |
+|---|---|---|
+| Ordered questions / form fields (checklists, submission forms, signup fields) | `manuscript.form_fields` relational table | Drag-to-reorder CRUD panel |
+| Scalar journal config (deadline defaults, reviewer counts, feature flags) | `manuscript.journal_settings` key-value table | Settings form |
+| Workflow-conditional checks | Graph gate nodes | Workflow Config chat |
+
+*These admin-configurable setting pages are planned but not yet built.*
+
+---
+
 ## Theming
 
 All colors, radius, and surface tokens are CSS custom properties in `app/globals.css`. Change them once and the entire app rethemes — light and dark mode both update.
 
-### Recommended workflow
-
-1. Open the [Shadcn theme builder](https://ui.shadcn.com/create) and design your theme visually using the controls (Style, Base Color, Theme, Radius, etc.)
-2. Copy the `--preset` code shown at the bottom left of the panel
-3. Run the CLI command to apply it to this project:
-
-```bash
-npx shadcn@latest init --preset <code>
-```
-
-This rewrites the CSS variables in `app/globals.css` to match your chosen theme — light and dark mode both update automatically.
-
-### Key variables
-
-| Variable | Effect |
-|---|---|
-| `--primary` | Buttons, active states |
-| `--background` / `--foreground` | Page background and text |
-| `--radius` | All border radii app-wide (one value scales everything) |
-| `--muted` / `--accent` | Secondary surfaces, hover states |
-
-You can also browse ready-made presets at [ui.shadcn.com/themes](https://ui.shadcn.com/themes) and copy those instead.
+1. Open the [Shadcn theme builder](https://ui.shadcn.com/create) and design your theme visually
+2. Copy the `--preset` code shown at the bottom left
+3. Run: `npx shadcn@latest init --preset <code>`
 
 ---
 
@@ -162,28 +185,43 @@ This license was chosen deliberately. Editorial management systems are delivered
 
 ### Infrastructure
 - **Docker Compose stack** — `apache/age` (PostgreSQL + AGE extension) on port 5432, MinIO on ports 9000/9001, both with persistent volumes and healthchecks
-- **Database schemas** — `manuscript` schema (journals, people, roles, manuscripts, assignments), `history` schema (append-only event log), AGE property graph (`ems_graph`)
-- **Seed data** — one journal, seven people with roles, one manuscript, graph nodes and relationships mirroring the relational data
-- **`lib/graph.ts`** — database client with `sql()` for parameterised SQL, `cypher()` for graph queries with RETURN clauses, `cypherMutate()` for graph writes, and `withTransaction()` for multi-step operations
+- **Database schemas** — `manuscript` schema (journals, people, roles, manuscripts, manuscript types, assignments), `history` schema (append-only event log), AGE property graph (`ems_graph`)
+- **Migrations** — `db/init.sql` (base schema), `db/002_manuscript_types.sql` (manuscript types table), `db/003_journal_acronym.sql` (journal acronym column — unique, required, URL slug)
+- **Seed data** — test journal, people with roles, manuscript, graph nodes mirroring relational data (`db/seed.sql`, `db/seed_full.sql`)
+- **`lib/graph.ts`** — database client with `sql()` for parameterised SQL, `cypher()` for graph queries, `cypherMutate()` for graph writes, and `withTransaction()` for multi-step operations
 
-### Admin Console (`/admin`)
-- **Landing page** — cards linking to all admin sections
-- **Journals** (`/admin/journals`) — list of journals with ISSN and subject area
-- **Users** (`/admin/users`) — all people with role tags, across all journals
-- **Workflows** (`/admin/workflows`) — all `WorkflowDefinition` nodes with their step lists rendered as a numbered linear view
-- **Email Templates** (`/admin/email-templates`) — `EmailTemplate` nodes from the graph
-- **Workflow Config** (`/admin/workflow`) — AI chat interface for configuring workflows in plain language (see below)
+### System Admin (`/admin`)
+- **Landing page** — links to all system-level sections
+- **Journals** — add and edit journals with name, acronym (required, unique, URL slug), ISSN, and subject area
 
-### AI Workflow Configuration and Troubleshooting
-- **`/api/admin/workflow-chat`** — Claude agent with nine tools across two modes:
-  - *Configuration:* `get_workflow`, `describe_workflow`, `list_gate_types`, `list_email_templates`, `stage_mutations`, `commit_mutations`
-  - *Troubleshooting:* `query_manuscripts`, `get_manuscript_details`, `get_manuscript_history`
-- **Confirm-before-commit pattern** — applies to both configuration and fixes; Claude stages changes with plain-language descriptions before anything is written to the graph
-- **Self-reliant editorial offices** — admins can diagnose and fix stuck manuscripts, missing assignments, and stalled gates through the same chat interface, with no vendor or IT involvement
-- **Verified end-to-end** — a Standard Peer Review workflow (5 steps, 1 gate with `ON_PASS`/`ON_TIMEOUT` branches) was configured via chat and committed to the graph
+### Journal Workspace (`/journal-admin/[acronym]`)
+All pages are scoped to the journal identified by acronym in the URL. A journal selector in the header allows switching between journals.
+- **Dashboard** — queue counts (awaiting checklist, under review, awaiting revision) with action links
+- **Checklist Queue** — list of submitted manuscripts awaiting admin review, with AI evaluation status badges
+- **Manuscript detail** — full manuscript metadata, AI-powered admin checklist evaluation, override controls, and action buttons (Pass to EIC, Unsubmit, Reject with Transfer)
+- **Manuscript Types** — per-journal submission types with acronym, description, workflow link, active/inactive status
+- **Workflows** — workflow definitions filtered to this journal, rendered as numbered linear step lists with gate branching shown inline
+- **Workflow Config** — AI chat for configuring workflows in plain language (confirm-before-commit)
+- **Email Templates** — `EmailTemplate` graph nodes with name, subject, description, body
+- **Users** — people with roles on this journal; add and edit with role checkboxes
+- **Troubleshooting** — AI chat for diagnosing and fixing stuck manuscripts and stalled gates
 
-### Home Page
-- Landing page with hero, feature grid, and links to the admin console and workflow config
+### AI Interfaces
+**General chat** (`/api/chat`) — streaming Claude chat on the home page, no tools, for general questions.
+
+**Workflow agent** (`/api/admin/workflow-chat`) — tool-using Claude agent with nine tools across two modes:
+- *Configuration:* `get_workflow`, `describe_workflow`, `list_gate_types`, `list_email_templates`, `stage_mutations`, `commit_mutations`
+- *Troubleshooting:* `query_manuscripts`, `get_manuscript_details`, `get_manuscript_history`
+
+Confirm-before-commit applies to both modes. A Standard Peer Review workflow (5 steps, 1 gate with `ON_PASS`/`ON_TIMEOUT` branches) has been configured and committed via chat.
+
+### Planned (not yet built)
+- Authentication and role-based login routing
+- Per-journal landing pages (`/journal/[acronym]`)
+- Author portal (`/author/[acronym]`)
+- Reviewer portal (`/reviewer/[acronym]`)
+- Admin-configurable form fields and journal settings pages
+- Reviewer selection agent
 
 ---
 
@@ -192,42 +230,57 @@ This license was chosen deliberately. Editorial management systems are delivered
 ```
 ├── app/
 │   ├── api/
-│   │   ├── chat/route.ts                    # General Claude streaming chat route
-│   │   └── admin/workflow-chat/route.ts     # Workflow config agent (6 tools, NDJSON stream)
+│   │   ├── chat/route.ts                         # General Claude streaming chat (no tools)
+│   │   ├── admin/
+│   │   │   ├── workflow-chat/route.ts             # Workflow config agent (6 tools, NDJSON stream)
+│   │   │   └── troubleshooting-chat/route.ts      # Troubleshooting agent (3 tools, NDJSON stream)
+│   │   └── journal-admin/
+│   │       └── checklist-evaluate/route.ts        # AI checklist evaluation endpoint
 │   ├── admin/
-│   │   ├── layout.tsx                       # Admin sidebar + 1280px shell
-│   │   ├── page.tsx                         # Admin landing page
-│   │   ├── journals/page.tsx                # Journals list
-│   │   ├── users/page.tsx                   # Users + roles list
-│   │   ├── workflows/page.tsx               # Workflow definitions list
-│   │   ├── workflow/page.tsx                # AI workflow configuration chat
-│   │   └── email-templates/page.tsx         # Email templates list
-│   ├── globals.css                          # Tailwind v4 global styles
-│   ├── layout.tsx                           # Root layout
-│   └── page.tsx                             # Home / landing page
+│   │   ├── layout.tsx                             # System admin shell (Journals only)
+│   │   ├── page.tsx                               # System admin landing
+│   │   └── journals/                              # Add / edit journals
+│   ├── journal-admin/
+│   │   └── [acronym]/
+│   │       ├── layout.tsx                         # Journal workspace shell + journal selector
+│   │       ├── journal-selector.tsx               # Client component — journal switcher dropdown
+│   │       ├── page.tsx                           # Dashboard (journal-scoped queue counts)
+│   │       ├── queue/page.tsx                     # Checklist queue
+│   │       ├── manuscripts/[id]/                  # Manuscript detail, checklist, actions
+│   │       ├── manuscript-types/                  # Submission types CRUD
+│   │       ├── workflows/page.tsx                 # Workflow definitions list
+│   │       ├── workflow/page.tsx                  # AI workflow configuration chat
+│   │       ├── email-templates/                   # Email template CRUD
+│   │       ├── users/                             # Journal users CRUD
+│   │       └── troubleshooting/page.tsx           # AI troubleshooting chat
+│   ├── globals.css                                # Tailwind v4 global styles + theme tokens
+│   ├── layout.tsx                                 # Root layout
+│   └── page.tsx                                   # Home / generic landing page
 ├── components/
-│   ├── chat.tsx                             # General chat UI component
-│   ├── workflow-chat.tsx                    # Workflow config chat with tool badges + staged changes panel
-│   └── ui/                                  # Shadcn components (you own these)
+│   ├── chat.tsx                                   # General chat UI
+│   ├── workflow-chat.tsx                          # Workflow/troubleshooting chat with tool badges
+│   └── ui/                                        # Shadcn components (owned, editable)
 ├── db/
-│   ├── init.sql                             # AGE extension, graph, relational schemas
-│   ├── migrate.sh                           # Runs init.sql against the running container
-│   ├── seed.sql                             # Test journal, people, manuscript, graph nodes
-│   └── seed.sh                             # Runs seed.sql against the running container
+│   ├── init.sql                                   # AGE extension, graph, all schemas and tables
+│   ├── migrate.sh                                 # Runs init.sql against running container
+│   ├── 002_manuscript_types.sql / .sh             # Migration: manuscript types table
+│   ├── 003_journal_acronym.sql / .sh              # Migration: journal acronym column (UNIQUE NOT NULL)
+│   ├── seed.sql / seed.sh                         # Minimal test data
+│   └── seed_full.sql / seed_full.sh               # Full test dataset
 ├── lib/
-│   ├── graph.ts                             # sql(), cypher(), cypherMutate(), withTransaction()
-│   └── utils.ts                             # cn() helper (tailwind-merge + clsx)
-├── docker-compose.yml                       # postgres-age + minio services
-├── CLAUDE.md                                # Claude Code project guide
-├── components.json                          # Shadcn configuration
-└── next.config.ts                           # Next.js configuration
+│   ├── graph.ts                                   # sql(), cypher(), cypherMutate(), withTransaction()
+│   └── utils.ts                                   # cn() helper (tailwind-merge + clsx)
+├── docker-compose.yml                             # postgres-age + minio services
+├── CLAUDE.md                                      # Claude Code project guide (architecture decisions)
+├── components.json                                # Shadcn configuration
+└── next.config.ts                                 # Next.js configuration
 ```
 
 ---
 
 ## Installation
 
-Installation is designed to be guided by a Claude agent. Open `INSTALL.md` in Claude Code and follow the prompts — the document is written for an AI agent to execute, with exact commands, environment variable templates, and verification steps.
+Installation is designed to be guided by a Claude agent. Open `INSTALL.md` in Claude Code and follow the prompts — the document is written for an AI agent to execute, with exact commands, environment variable templates, and verification steps after each step.
 
 ### Quick start (development)
 
@@ -277,7 +330,7 @@ Configured in `.mcp.json`:
 - [Shadcn MCP Server](https://github.com/ahonn/mcp-server-shadcn) — Claude can browse and add Shadcn components directly
 - [Context7 MCP](https://github.com/upstash/context7) — Fetches up-to-date docs for Next.js, React, Tailwind, and Shadcn on demand
 - [Puppeteer MCP Server](https://github.com/merajmehrabi/puppeteer-mcp-server) — Claude can navigate the running app and verify features end-to-end
-- [Postgres MCP](https://github.com/modelcontextprotocol/servers/tree/main/src/postgres) — Claude can query the workflow graph and manuscript history directly via Cypher (through AGE) and SQL. Add this to `.mcp.json` early — it makes iterating on the graph model much faster.
+- [Postgres MCP](https://github.com/modelcontextprotocol/servers/tree/main/src/postgres) — Claude can query the workflow graph and manuscript history directly via Cypher (through AGE) and SQL
 
 ---
 
@@ -288,4 +341,5 @@ Configured in `.mcp.json`:
 - [Tailwind CSS Docs](https://tailwindcss.com/docs)
 - [Shadcn/ui Components](https://ui.shadcn.com/docs/components)
 - [Anthropic API Docs](https://docs.anthropic.com)
+- [Apache AGE Docs](https://age.apache.org/age-manual/master/index.html)
 - [Lucide Icons](https://lucide.dev)

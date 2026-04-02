@@ -124,6 +124,118 @@ When writing or updating `INSTALL.md`, follow these conventions:
 
 ---
 
+## Navigation & Routing Architecture
+
+### Entry points
+
+There are two public entry points, both showing "centers" (role-based portals):
+
+**`/` — Generic landing page**
+Represents the publisher or society as a whole. Not journal-specific. Centers here are cross-journal: Author Center, Reviewer Center, Editorial Center. Clicking a center prompts login (or proceeds if already authenticated), then routes based on the user's journals for that role (see post-login routing below).
+
+**`/journal/[acronym]` — Per-journal landing page**
+Each journal has its own landing page (e.g. `/journal/NEJM`). Centers here are scoped to that journal only. Login from this page always routes to that specific journal — no journal selection step needed.
+
+---
+
+### Centers
+
+Centers are role-grouped entry points shown on landing pages:
+
+| Center | Destination after login |
+|---|---|
+| Author Center | `/author/[acronym]` |
+| Reviewer Center | `/reviewer/[acronym]` |
+| Editorial Center | `/journal-admin/[acronym]` |
+| System Admin | `/admin` |
+
+---
+
+### Post-login routing
+
+After authentication, the system determines where to send the user based on the role they clicked and the journals they belong to:
+
+1. **Arriving from `/journal/[acronym]`** — journal is already known. Route directly to `/{role-path}/[acronym]`.
+2. **Arriving from `/`** — look up all journals where the user has the requested role:
+   - **One journal** → route directly to `/{role-path}/[acronym]`
+   - **Multiple journals** → present a journal picker during the login flow, then route to the selected journal
+   - **No journals** → show an appropriate error (access not provisioned)
+
+Already-authenticated users clicking a center skip the login step and go straight to the routing logic above.
+
+---
+
+### Role-to-path mapping
+
+| Role(s) | Path |
+|---|---|
+| `author` | `/author/[acronym]` |
+| `reviewer` | `/reviewer/[acronym]` |
+| `assistant_editor`, `editor`, `editor_in_chief`, `editorial_support` | `/journal-admin/[acronym]` |
+| `system_admin` | `/admin` |
+
+A person can hold different roles across different journals. A reviewer on NEJM who is also an author on JAMA will see two centers (or two journal options within the same center) on the generic home page.
+
+---
+
+### Journal switching
+
+Once inside a role area, users with the same role on multiple journals can switch journals via the journal selector in the layout header — without going back to the landing page.
+
+---
+
+### Planned route structure
+
+```
+app/
+  page.tsx                          # Generic landing page — all centers
+  journal/
+    [acronym]/
+      page.tsx                      # Per-journal landing page — journal-scoped centers
+  author/
+    [acronym]/                      # Author portal for a specific journal
+  reviewer/
+    [acronym]/                      # Reviewer portal for a specific journal
+  journal-admin/
+    [acronym]/                      # Editorial workspace (editors, AEs, support)
+  admin/                            # System admin (no journal scope)
+```
+
+---
+
+## Admin Structure — Two Levels
+
+There are two distinct admin spaces with different scopes and audiences:
+
+### `/admin/` — System Admin
+Accessible only to system administrators. Concerns the installation as a whole:
+- **Journals** — add journals, disable journals (prevent new submissions), set journal acronym
+- System-level settings
+
+Nothing journal-specific lives here. Manuscript types, workflows, email templates, users, and submission queues all belong in the journal workspace.
+
+### `/journal-admin/[acronym]/` — Journal Workspace
+Accessible to editors and journal-level admins, scoped to one journal at a time. The journal acronym is the URL slug — e.g. `/journal-admin/NEJM/manuscripts`. This makes URLs bookmarkable and human-readable.
+
+Journal-scoped sections (all under `/journal-admin/[acronym]/`):
+- Dashboard / queue
+- Manuscripts
+- Manuscript types
+- Workflows
+- Email templates
+- Users (people with roles on this journal)
+- Settings (checklist questions, form fields, scalar config)
+
+**Journal selector:** Shown in the journal-admin layout header. System admins see all journals plus a link back to `/admin/`. Journal admins see only their assigned journals. If a user has exactly one journal, skip the picker and redirect directly to that journal's workspace.
+
+**Acronym as slug:**
+- Journal acronyms are stored uppercase (enforced in `actions.ts`)
+- Globally unique across all journals — enforced by `UNIQUE` constraint on `manuscript.journals.acronym`
+- Required field — a journal cannot be created without one
+- URL lookups should be case-insensitive (`WHERE UPPER(acronym) = UPPER($1)`) to handle direct URL entry
+
+---
+
 ## Multi-Journal Tenancy
 
 One system instance hosts multiple journals. `Journal` is a first-class node in the graph. All workflow definitions, reviewer pools, editorial teams, and manuscripts belong to a Journal node.
@@ -299,6 +411,73 @@ When rendering a workflow for admin review, output a linear step list in this fo
 ```
 
 This format is renderable in Markdown and in a React component — do not require a graph rendering library for the default view.
+
+---
+
+## Admin-Configurable Settings
+
+Many aspects of the system must be configurable per journal by administrators without code changes. Settings fall into three categories with different storage strategies.
+
+**Rule: use the graph for conditional logic and state transitions; use relational tables for configuration data that the graph operates on.**
+
+| Setting type | Storage | Admin UI |
+|---|---|---|
+| Ordered questions / form fields | `manuscript.form_fields` (relational) | Drag-to-reorder CRUD panel |
+| Scalar journal config | `manuscript.journal_settings` key-value | Settings form per journal |
+| Workflow-conditional checks | Graph gate nodes | Workflow config chat (Claude) |
+
+---
+
+### Ordered form fields — `manuscript.form_fields`
+
+Used for anything that is a configurable list of questions or fields: submission checklists, author signup fields, manuscript submission form questions. One table covers all form types via a `form_type` discriminator.
+
+**Planned schema:**
+
+```sql
+CREATE TABLE manuscript.form_fields (
+    id            UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+    journal_id    UUID NOT NULL REFERENCES manuscript.journals(id),
+    form_type     TEXT NOT NULL,   -- 'checklist' | 'submission' | 'signup'
+    label         TEXT NOT NULL,
+    field_type    TEXT NOT NULL DEFAULT 'boolean',  -- 'boolean' | 'text' | 'select' | 'date'
+    options       JSONB,           -- for 'select' fields: ["Option A", "Option B"]
+    required      BOOLEAN NOT NULL DEFAULT false,
+    display_order INT NOT NULL DEFAULT 0,
+    active        BOOLEAN NOT NULL DEFAULT true,
+    created_at    TIMESTAMPTZ NOT NULL DEFAULT now()
+);
+```
+
+An optional `manuscript_type_id` FK can be added later to scope checklists to specific manuscript types.
+
+**Admin UI:** A drag-to-reorder list with add/edit/toggle-active controls. This is structured enough that a traditional CRUD panel is faster and less error-prone than AI translation — do not use the workflow config chat for this.
+
+---
+
+### Scalar journal settings — `manuscript.journal_settings`
+
+Used for named configuration values that don't warrant their own columns: deadline defaults, reviewer count thresholds, feature flags, etc.
+
+**Planned schema:**
+
+```sql
+CREATE TABLE manuscript.journal_settings (
+    journal_id   UUID NOT NULL REFERENCES manuscript.journals(id),
+    key          TEXT NOT NULL,
+    value        TEXT NOT NULL,
+    updated_at   TIMESTAMPTZ NOT NULL DEFAULT now(),
+    PRIMARY KEY (journal_id, key)
+);
+```
+
+Known keys are documented in application code. Unknown keys are ignored — this avoids schema migrations for every new setting. Example keys: `review_deadline_days`, `min_reviewers`, `max_reviewers`, `allow_author_reviewer_suggestions`.
+
+---
+
+### Workflow-conditional checks (graph)
+
+Questions or tasks that are **part of a workflow step** — e.g. "author must confirm ethics compliance before submission advances past triage" — belong in the graph as gate or task nodes with the condition encoded as a property. The `form_fields` table handles *which questions exist*; the graph handles *when they're evaluated and what happens next*.
 
 ---
 

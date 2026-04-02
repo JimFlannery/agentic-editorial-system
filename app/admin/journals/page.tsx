@@ -4,6 +4,7 @@ import { AddJournalDialog } from "./add-journal-dialog"
 interface Journal {
   id: string
   name: string
+  acronym: string | null
   issn: string | null
   subject_area: string | null
   created_at: string
@@ -11,7 +12,7 @@ interface Journal {
 
 export default async function JournalsPage() {
   const journals = await sql<Journal>(
-    "SELECT id, name, issn, subject_area, created_at FROM manuscript.journals ORDER BY name"
+    "SELECT id, name, acronym, issn, subject_area, created_at FROM manuscript.journals ORDER BY name"
   )
 
   return (
@@ -34,9 +35,11 @@ export default async function JournalsPage() {
             <thead>
               <tr className="border-b border-zinc-200 dark:border-zinc-800 bg-zinc-50 dark:bg-zinc-900">
                 <th className="text-left px-4 py-3 font-medium text-zinc-500 dark:text-zinc-400">Name</th>
+                <th className="text-left px-4 py-3 font-medium text-zinc-500 dark:text-zinc-400">Acronym</th>
                 <th className="text-left px-4 py-3 font-medium text-zinc-500 dark:text-zinc-400">ISSN</th>
                 <th className="text-left px-4 py-3 font-medium text-zinc-500 dark:text-zinc-400">Subject area</th>
                 <th className="text-left px-4 py-3 font-medium text-zinc-500 dark:text-zinc-400">Added</th>
+              <th className="px-4 py-3" />
               </tr>
             </thead>
             <tbody>
@@ -46,10 +49,14 @@ export default async function JournalsPage() {
                   className={i < journals.length - 1 ? "border-b border-zinc-100 dark:border-zinc-800" : ""}
                 >
                   <td className="px-4 py-3 font-medium text-zinc-900 dark:text-zinc-100">{j.name}</td>
+                  <td className="px-4 py-3 text-zinc-500 dark:text-zinc-400">{j.acronym ?? "—"}</td>
                   <td className="px-4 py-3 text-zinc-500 dark:text-zinc-400">{j.issn ?? "—"}</td>
                   <td className="px-4 py-3 text-zinc-500 dark:text-zinc-400">{j.subject_area ?? "—"}</td>
                   <td className="px-4 py-3 text-zinc-400 dark:text-zinc-500 text-xs">
                     {new Date(j.created_at).toLocaleDateString()}
+                  </td>
+                  <td className="px-4 py-3 text-right">
+                    <AddJournalDialog journal={j} />
                   </td>
                 </tr>
               ))}

@@ -33,6 +33,7 @@ CREATE SCHEMA IF NOT EXISTS history;     -- append-only audit log
 CREATE TABLE manuscript.journals (
     id            UUID PRIMARY KEY DEFAULT gen_random_uuid(),
     name          TEXT NOT NULL,
+    acronym       TEXT NOT NULL UNIQUE,
     issn          TEXT,
     subject_area  TEXT,
     created_at    TIMESTAMPTZ NOT NULL DEFAULT now()

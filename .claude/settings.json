@@ -20,7 +20,12 @@
       "Bash(docker compose:*)",
       "Bash(npx tsc:*)",
       "Bash(npx shadcn@latest add dialog input label --yes)",
-      "Bash(npx shadcn@latest add dialog input label)"
+      "Bash(npx shadcn@latest add dialog input label)",
+      "Bash(mkdir -p \"c:/Users/jim-f/source/repos/oss-editorial-management-system/app/journal-admin/[acronym]/users\")",
+      "Bash(mkdir -p \"c:/Users/jim-f/source/repos/oss-editorial-management-system/app/journal-admin/[acronym]/manuscript-types\")",
+      "Bash(mkdir -p \"c:/Users/jim-f/source/repos/oss-editorial-management-system/app/journal-admin/[acronym]/email-templates\")",
+      "Bash(mkdir -p \"c:/Users/jim-f/source/repos/oss-editorial-management-system/app/journal-admin/[acronym]/workflows\")",
+      "Bash(mkdir -p \"c:/Users/jim-f/source/repos/oss-editorial-management-system/app/journal-admin/[acronym]/workflow\")"
     ],
     "additionalDirectories": [
       "c:\\Users\\jim-f\\.claude\\projects\\c--Users-jim-f-source-repos-oss-editorial-management-system\\memory"
