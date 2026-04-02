@@ -1,6 +1,6 @@
 # Agentic Editorial System
 
-An open-source agentic editorial system for academic and scientific publishing, built on a graph database workflow engine and the TRAINS stack. Licensed under [AGPLv3](LICENSE).
+An open-source agentic editorial system for academic and scientific publishing, built on a graph database workflow engine and the TRAINS (Tailwind, React, AI, Next.js, Shadcn) stack. Licensed under [AGPLv3](LICENSE).
 
 > **Status:** Active development — core stack running, admin console and workflow configuration live
 
