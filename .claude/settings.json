@@ -25,7 +25,9 @@
       "Bash(mkdir -p \"c:/Users/jim-f/source/repos/oss-editorial-management-system/app/journal-admin/[acronym]/manuscript-types\")",
       "Bash(mkdir -p \"c:/Users/jim-f/source/repos/oss-editorial-management-system/app/journal-admin/[acronym]/email-templates\")",
       "Bash(mkdir -p \"c:/Users/jim-f/source/repos/oss-editorial-management-system/app/journal-admin/[acronym]/workflows\")",
-      "Bash(mkdir -p \"c:/Users/jim-f/source/repos/oss-editorial-management-system/app/journal-admin/[acronym]/workflow\")"
+      "Bash(mkdir -p \"c:/Users/jim-f/source/repos/oss-editorial-management-system/app/journal-admin/[acronym]/workflow\")",
+      "mcp__context7__resolve-library-id",
+      "mcp__context7__query-docs"
     ],
     "additionalDirectories": [
       "c:\\Users\\jim-f\\.claude\\projects\\c--Users-jim-f-source-repos-oss-editorial-management-system\\memory"

@@ -21,6 +21,7 @@ See `README.md` for full project context.
 | Tailwind CSS | v4 |
 | Shadcn/ui | v4 |
 | Anthropic SDK | latest |
+| Auth | Better Auth (MIT) |
 | Graph + Relational DB | PostgreSQL + Apache AGE extension |
 | Object Storage | MinIO (self-hosted) or any S3-compatible service |
 
@@ -233,6 +234,119 @@ Journal-scoped sections (all under `/journal-admin/[acronym]/`):
 - Globally unique across all journals — enforced by `UNIQUE` constraint on `manuscript.journals.acronym`
 - Required field — a journal cannot be created without one
 - URL lookups should be case-insensitive (`WHERE UPPER(acronym) = UPPER($1)`) to handle direct URL entry
+
+---
+
+## Authentication
+
+**Provider: [Better Auth](https://better-auth.com) (MIT)**
+
+Better Auth is a TypeScript-first, self-hosted authentication library. It is the right fit for small-to-medium editorial offices — simple to operate, no external auth service required, and MIT-licensed so it's compatible with this project's AGPLv3 license. Larger organisations that need SSO/SAML or enterprise identity providers can integrate their own auth solution; by the terms of AGPLv3, they must release those modifications as source code.
+
+---
+
+### How Better Auth integrates
+
+Better Auth uses the `pg` Pool adapter — it connects directly to the same PostgreSQL database and manages its own schema tables. It does **not** use this project's `sql()` helper; it runs its own queries internally.
+
+```ts
+// lib/auth.ts
+import { betterAuth } from "better-auth"
+import { Pool } from "pg"
+
+export const auth = betterAuth({
+  database: new Pool({ connectionString: process.env.DATABASE_URL }),
+  emailAndPassword: { enabled: true },
+  user: {
+    additionalFields: {
+      system_admin: { type: "boolean", defaultValue: false },
+    },
+  },
+})
+```
+
+Better Auth's CLI generates and runs its own migrations for the auth tables. Run them separately from the app's `db/migrate.sh`.
+
+**Better Auth manages these tables** (in the `public` schema by default — consider moving to an `auth` schema via `advanced.database.schema`):
+- `user` — id, name, email, emailVerified, system_admin (custom field)
+- `session` — id, token, userId (FK), expiresAt
+- `account` — OAuth provider links
+- `verification` — email verification and password reset tokens
+
+---
+
+### Linking auth users to editorial people
+
+Better Auth's `user` table handles authentication. The app's `manuscript.people` table handles editorial identity (journal assignments, roles, ORCID, etc.). They are linked by `auth_user_id`:
+
+```sql
+-- Add to manuscript.people (migration 004)
+ALTER TABLE manuscript.people ADD COLUMN auth_user_id TEXT UNIQUE REFERENCES public.user(id);
+```
+
+When a user logs in, the app looks up their `manuscript.people` record by `auth_user_id` to determine journal assignments and editorial roles.
+
+---
+
+### Session access in Next.js App Router
+
+Use per-page session checks in Server Components — this is the secure pattern recommended by Better Auth. Do not rely on middleware alone.
+
+```ts
+import { auth } from "@/lib/auth"
+import { headers } from "next/headers"
+
+const session = await auth.api.getSession({ headers: await headers() })
+if (!session) redirect("/login")
+```
+
+---
+
+### System admin flag
+
+The `system_admin` boolean is a custom field on the Better Auth `user` record. It is set manually by an operator (direct DB update or a future admin tool). System admins can access `/admin` and see all journals. All other users are scoped to journals they have roles on.
+
+This avoids needing a separate `system_admins` table and keeps auth state in one place.
+
+---
+
+### Post-login routing
+
+After authentication, the app determines where to send the user:
+
+1. Look up the user's `manuscript.people` record via `auth_user_id`
+2. Query their `manuscript.person_roles` to find journals and roles
+3. Apply routing rules:
+
+```
+system_admin = true           → /admin
+role = author                 → /author/[acronym]
+role = reviewer               → /reviewer/[acronym]
+role ∈ {assistant_editor,     → /journal-admin/[acronym]
+        editor,
+        editor_in_chief,
+        editorial_support}
+```
+
+4. If the user has the same role on **multiple journals**, show a journal picker before routing
+5. If the user has **no roles** (account exists but not yet provisioned), show a "contact your editorial office" message
+
+When arriving from `/journal/[acronym]`, the journal is already known — skip step 4 and route directly.
+
+---
+
+### Auth routes
+
+Better Auth's catch-all handler mounts at `/api/auth/[...all]`:
+
+```ts
+// app/api/auth/[...all]/route.ts
+import { auth } from "@/lib/auth"
+import { toNextJsHandler } from "better-auth/next-js"
+export const { GET, POST } = toNextJsHandler(auth)
+```
+
+Login, logout, session refresh, email verification, and password reset all go through this route automatically.
 
 ---
 

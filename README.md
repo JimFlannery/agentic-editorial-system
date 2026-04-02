@@ -167,6 +167,8 @@ All colors, radius, and surface tokens are CSS custom properties in `app/globals
 | **N** | [Next.js](https://nextjs.org) | v16 (App Router) |
 | **S** | [Shadcn/ui](https://ui.shadcn.com) | v4 |
 
+**Auth:** [Better Auth](https://better-auth.com) (MIT) — self-hosted, TypeScript-first authentication with email/password and OAuth support. No external auth service required. Better Auth is the default for smaller organisations. Larger organisations that integrate a different auth provider (SSO/SAML, enterprise IdP) must release that code under AGPLv3.
+
 **Graph + Relational DB:** [PostgreSQL](https://www.postgresql.org) + [Apache AGE](https://age.apache.org) extension (Cypher query support over Postgres). Apache 2.0 licensed — the only viable path given that Neo4j, ArangoDB, FalkorDB, and Memgraph all now use SaaS-restricting licenses incompatible with AGPLv3 SaaS hosting without a commercial agreement.
 
 **Object Storage:** [MinIO](https://min.io) (S3-compatible, AGPLv3) for binary files — manuscripts, figures, reviewer attachments. Operators can swap in any S3-compatible service with no code changes.
@@ -216,12 +218,13 @@ All pages are scoped to the journal identified by acronym in the URL. A journal 
 Confirm-before-commit applies to both modes. A Standard Peer Review workflow (5 steps, 1 gate with `ON_PASS`/`ON_TIMEOUT` branches) has been configured and committed via chat.
 
 ### Planned (not yet built)
-- Authentication and role-based login routing
-- Per-journal landing pages (`/journal/[acronym]`)
-- Author portal (`/author/[acronym]`)
-- Reviewer portal (`/reviewer/[acronym]`)
-- Admin-configurable form fields and journal settings pages
-- Reviewer selection agent
+- **Authentication** (Better Auth) — login/logout, session management, email verification, password reset; `auth_user_id` FK linking Better Auth users to `manuscript.people`
+- **Role-based login routing** — post-login redirect based on editorial role and journal; journal picker for users with multiple journals
+- **Per-journal landing pages** (`/journal/[acronym]`)
+- **Author portal** (`/author/[acronym]`)
+- **Reviewer portal** (`/reviewer/[acronym]`)
+- **Admin-configurable form fields and journal settings** — checklist questions, submission form fields, scalar journal config
+- **Reviewer selection agent**
 
 ---
 
@@ -342,4 +345,5 @@ Configured in `.mcp.json`:
 - [Shadcn/ui Components](https://ui.shadcn.com/docs/components)
 - [Anthropic API Docs](https://docs.anthropic.com)
 - [Apache AGE Docs](https://age.apache.org/age-manual/master/index.html)
+- [Better Auth Docs](https://better-auth.com/docs)
 - [Lucide Icons](https://lucide.dev)
