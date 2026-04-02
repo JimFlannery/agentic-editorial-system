@@ -1,4 +1,5 @@
 import { sql } from "@/lib/graph"
+import { AddJournalDialog } from "./add-journal-dialog"
 
 interface Journal {
   id: string
@@ -22,9 +23,7 @@ export default async function JournalsPage() {
             {journals.length} journal{journals.length !== 1 ? "s" : ""} on this instance
           </p>
         </div>
-        <button className="rounded-lg bg-zinc-900 dark:bg-zinc-100 text-white dark:text-zinc-900 text-sm font-medium px-4 py-2 hover:opacity-90 transition-opacity">
-          Add journal
-        </button>
+        <AddJournalDialog />
       </div>
 
       {journals.length === 0 ? (

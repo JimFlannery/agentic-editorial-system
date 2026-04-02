@@ -1,4 +1,5 @@
 import { sql } from "@/lib/graph"
+import { AddManuscriptTypeDialog } from "./add-manuscript-type-dialog"
 
 interface ManuscriptType {
   id: string
@@ -26,6 +27,10 @@ const COMMON_TYPES = [
 ]
 
 export default async function ManuscriptTypesPage() {
+  const journals = await sql<{ id: string; name: string }>(
+    "SELECT id, name FROM manuscript.journals ORDER BY name"
+  )
+
   const types = await sql<ManuscriptType>(`
     SELECT
       mt.id,
@@ -50,9 +55,7 @@ export default async function ManuscriptTypesPage() {
             Define the submission types accepted by each journal. Each type can have its own workflow.
           </p>
         </div>
-        <button className="rounded-lg bg-zinc-900 dark:bg-zinc-100 text-white dark:text-zinc-900 text-sm font-medium px-4 py-2 hover:opacity-90 transition-opacity">
-          Add type
-        </button>
+        <AddManuscriptTypeDialog journals={journals} />
       </div>
 
       {types.length === 0 ? (

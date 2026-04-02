@@ -1,4 +1,5 @@
 import { cypher } from "@/lib/graph"
+import { AddEmailTemplateDialog } from "./add-email-template-dialog"
 
 interface TemplateRow {
   id: unknown
@@ -23,9 +24,7 @@ export default async function EmailTemplatesPage() {
             {templates.length} template{templates.length !== 1 ? "s" : ""} available
           </p>
         </div>
-        <button className="rounded-lg bg-zinc-900 dark:bg-zinc-100 text-white dark:text-zinc-900 text-sm font-medium px-4 py-2 hover:opacity-90 transition-opacity">
-          Add template
-        </button>
+        <AddEmailTemplateDialog />
       </div>
 
       {templates.length === 0 ? (

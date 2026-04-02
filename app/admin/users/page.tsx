@@ -1,4 +1,5 @@
 import { sql } from "@/lib/graph"
+import { AddUserDialog } from "./add-user-dialog"
 
 interface PersonRow {
   id: string
@@ -10,6 +11,10 @@ interface PersonRow {
 }
 
 export default async function UsersPage() {
+  const journals = await sql<{ id: string; name: string }>(
+    "SELECT id, name FROM manuscript.journals ORDER BY name"
+  )
+
   const people = await sql<PersonRow>(`
     SELECT
       p.id,
@@ -34,9 +39,7 @@ export default async function UsersPage() {
             {people.length} person{people.length !== 1 ? "s" : ""} across all journals
           </p>
         </div>
-        <button className="rounded-lg bg-zinc-900 dark:bg-zinc-100 text-white dark:text-zinc-900 text-sm font-medium px-4 py-2 hover:opacity-90 transition-opacity">
-          Add user
-        </button>
+        <AddUserDialog journals={journals} />
       </div>
 
       {people.length === 0 ? (

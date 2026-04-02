@@ -1,18 +1,18 @@
 import { WorkflowChat } from "@/components/workflow-chat"
 import { sql } from "@/lib/graph"
 
-// For now, use the seed journal. Replace with session-based journal selection later.
-const DEMO_JOURNAL_ID = "00000000-0000-0000-0000-000000000001"
-
 export default async function WorkflowConfigPage() {
   const journals = await sql<{ id: string; name: string }>(
-    "SELECT id, name FROM manuscript.journals WHERE id = $1",
-    [DEMO_JOURNAL_ID]
+    "SELECT id, name FROM manuscript.journals ORDER BY created_at LIMIT 1"
   )
   const journal = journals[0]
 
   if (!journal) {
-    return <p className="text-sm text-zinc-400">No journal found.</p>
+    return (
+      <p className="text-sm text-zinc-400">
+        No journals found. <a href="/admin/journals" className="underline underline-offset-2 hover:text-zinc-600">Add a journal first.</a>
+      </p>
+    )
   }
 
   return (

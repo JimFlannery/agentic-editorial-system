@@ -18,7 +18,9 @@
       "WebFetch(domain:techcommunity.microsoft.com)",
       "Bash(ls c:/Users/jim-f/source/repos/oss-editorial-management-system/.env*)",
       "Bash(docker compose:*)",
-      "Bash(npx tsc:*)"
+      "Bash(npx tsc:*)",
+      "Bash(npx shadcn@latest add dialog input label --yes)",
+      "Bash(npx shadcn@latest add dialog input label)"
     ],
     "additionalDirectories": [
       "c:\\Users\\jim-f\\.claude\\projects\\c--Users-jim-f-source-repos-oss-editorial-management-system\\memory"
