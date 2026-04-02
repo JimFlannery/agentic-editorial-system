@@ -15,7 +15,9 @@
       "WebFetch(domain:temboio.substack.com)",
       "WebFetch(domain:legacy.tembo.io)",
       "WebFetch(domain:docs.railway.com)",
-      "WebFetch(domain:techcommunity.microsoft.com)"
+      "WebFetch(domain:techcommunity.microsoft.com)",
+      "Bash(ls c:/Users/jim-f/source/repos/oss-editorial-management-system/.env*)",
+      "Bash(docker compose:*)"
     ],
     "additionalDirectories": [
       "c:\\Users\\jim-f\\.claude\\projects\\c--Users-jim-f-source-repos-oss-editorial-management-system\\memory"

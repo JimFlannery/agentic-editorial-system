@@ -2,7 +2,7 @@
 
 An open-source agentic editorial system for academic and scientific publishing, built on a graph database workflow engine and the TRAINS stack. Licensed under [AGPLv3](LICENSE).
 
-> **Status:** Early planning / pre-development
+> **Status:** Active development — core stack running, admin console and workflow configuration live
 
 ---
 
@@ -87,6 +87,35 @@ The agent returns a ranked shortlist. The assistant editor confirms or overrides
 
 ---
 
+## Theming
+
+All colors, radius, and surface tokens are CSS custom properties in `app/globals.css`. Change them once and the entire app rethemes — light and dark mode both update.
+
+### Recommended workflow
+
+1. Open the [Shadcn theme builder](https://ui.shadcn.com/create) and design your theme visually using the controls (Style, Base Color, Theme, Radius, etc.)
+2. Copy the `--preset` code shown at the bottom left of the panel
+3. Run the CLI command to apply it to this project:
+
+```bash
+npx shadcn@latest init --preset <code>
+```
+
+This rewrites the CSS variables in `app/globals.css` to match your chosen theme — light and dark mode both update automatically.
+
+### Key variables
+
+| Variable | Effect |
+|---|---|
+| `--primary` | Buttons, active states |
+| `--background` / `--foreground` | Page background and text |
+| `--radius` | All border radii app-wide (one value scales everything) |
+| `--muted` / `--accent` | Secondary surfaces, hover states |
+
+You can also browse ready-made presets at [ui.shadcn.com/themes](https://ui.shadcn.com/themes) and copy those instead.
+
+---
+
 ## Stack
 
 **TRAINS** — Tailwind · React · AI · Next.js · Shadcn
@@ -113,23 +142,66 @@ This license was chosen deliberately. Editorial management systems are delivered
 
 ---
 
+## What's Built
+
+### Infrastructure
+- **Docker Compose stack** — `apache/age` (PostgreSQL + AGE extension) on port 5432, MinIO on ports 9000/9001, both with persistent volumes and healthchecks
+- **Database schemas** — `manuscript` schema (journals, people, roles, manuscripts, assignments), `history` schema (append-only event log), AGE property graph (`ems_graph`)
+- **Seed data** — one journal, seven people with roles, one manuscript, graph nodes and relationships mirroring the relational data
+- **`lib/graph.ts`** — database client with `sql()` for parameterised SQL, `cypher()` for graph queries with RETURN clauses, `cypherMutate()` for graph writes, and `withTransaction()` for multi-step operations
+
+### Admin Console (`/admin`)
+- **Landing page** — cards linking to all admin sections
+- **Journals** (`/admin/journals`) — list of journals with ISSN and subject area
+- **Users** (`/admin/users`) — all people with role tags, across all journals
+- **Workflows** (`/admin/workflows`) — all `WorkflowDefinition` nodes with their step lists rendered as a numbered linear view
+- **Email Templates** (`/admin/email-templates`) — `EmailTemplate` nodes from the graph
+- **Workflow Config** (`/admin/workflow`) — AI chat interface for configuring workflows in plain language (see below)
+
+### AI Workflow Configuration
+- **`/api/admin/workflow-chat`** — Claude agent with six tools: `get_workflow`, `describe_workflow`, `list_gate_types`, `list_email_templates`, `stage_mutations`, `commit_mutations`
+- **Confirm-before-commit pattern** — Claude stages mutations with plain-language descriptions; a UI panel surfaces a "Confirm & apply" button before anything is written to the graph
+- **Verified end-to-end** — a Standard Peer Review workflow (5 steps, 1 gate with `ON_PASS`/`ON_TIMEOUT` branches) was configured via chat and committed to the graph
+
+### Home Page
+- Landing page with hero, feature grid, and links to the admin console and workflow config
+
+---
+
 ## Project Structure
 
 ```
 ├── app/
 │   ├── api/
-│   │   └── chat/route.ts     # Claude streaming API route
-│   ├── globals.css            # Tailwind v4 global styles
-│   ├── layout.tsx             # Root layout (Geist font)
-│   └── page.tsx               # Home page
+│   │   ├── chat/route.ts                    # General Claude streaming chat route
+│   │   └── admin/workflow-chat/route.ts     # Workflow config agent (6 tools, NDJSON stream)
+│   ├── admin/
+│   │   ├── layout.tsx                       # Admin sidebar + 1280px shell
+│   │   ├── page.tsx                         # Admin landing page
+│   │   ├── journals/page.tsx                # Journals list
+│   │   ├── users/page.tsx                   # Users + roles list
+│   │   ├── workflows/page.tsx               # Workflow definitions list
+│   │   ├── workflow/page.tsx                # AI workflow configuration chat
+│   │   └── email-templates/page.tsx         # Email templates list
+│   ├── globals.css                          # Tailwind v4 global styles
+│   ├── layout.tsx                           # Root layout
+│   └── page.tsx                             # Home / landing page
 ├── components/
-│   ├── chat.tsx               # Chat UI client component
-│   └── ui/                    # Shadcn components (you own these)
+│   ├── chat.tsx                             # General chat UI component
+│   ├── workflow-chat.tsx                    # Workflow config chat with tool badges + staged changes panel
+│   └── ui/                                  # Shadcn components (you own these)
+├── db/
+│   ├── init.sql                             # AGE extension, graph, relational schemas
+│   ├── migrate.sh                           # Runs init.sql against the running container
+│   ├── seed.sql                             # Test journal, people, manuscript, graph nodes
+│   └── seed.sh                             # Runs seed.sql against the running container
 ├── lib/
-│   └── utils.ts               # cn() helper (tailwind-merge + clsx)
-├── CLAUDE.md                  # Claude Code project guide
-├── components.json            # Shadcn configuration
-└── next.config.ts             # Next.js configuration
+│   ├── graph.ts                             # sql(), cypher(), cypherMutate(), withTransaction()
+│   └── utils.ts                             # cn() helper (tailwind-merge + clsx)
+├── docker-compose.yml                       # postgres-age + minio services
+├── CLAUDE.md                                # Claude Code project guide
+├── components.json                          # Shadcn configuration
+└── next.config.ts                           # Next.js configuration
 ```
 
 ---
@@ -144,16 +216,19 @@ Installation is designed to be guided by a Claude agent. Open `INSTALL.md` in Cl
 # 1. Clone and install dependencies
 npm install
 
-# 2. Copy environment template and fill in values
+# 2. Copy environment template and fill in your ANTHROPIC_API_KEY
 cp .env.example .env.local
 
-# 3. Start all services (app + Postgres/AGE + MinIO)
+# 3. Start the database and object storage
 docker compose up -d
 
-# 4. Run database migrations
-npm run db:migrate
+# 4. Run database migrations (creates schemas and the AGE graph)
+bash db/migrate.sh
 
-# 5. Start the dev server
+# 5. (Optional) Load seed data — one test journal, team, and manuscript
+bash db/seed.sh
+
+# 6. Start the dev server
 npm run dev
 ```
 

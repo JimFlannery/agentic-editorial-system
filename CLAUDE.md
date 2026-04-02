@@ -348,6 +348,19 @@ app/
 
 ---
 
+## Apache AGE Cypher Limitations
+
+These are known AGE dialect differences from standard Neo4j Cypher — do not use these patterns:
+
+- **WorkflowDefinition uses `[:FIRST_STEP]`** to point to the first node — not `[:STARTS_WITH]`. Steps connect via `[:NEXT]`. Nodes use `name` property (not `label`) and `position` for ordering.
+- **No multi-type relationship matching** — `(n)-[:A|B|C]->(m)` is not supported. Query each relationship type separately and merge results in application code.
+- **No SQL functions in Cypher** — `gen_random_uuid()`, `now()`, etc. are SQL functions and cannot be used inside `cypher()` calls.
+- **Single labels only** — `(:Person:Reviewer)` multi-label nodes are not supported. Use a `role` property instead.
+- **Single-quoted strings only** — Use `{name: 'value'}` not `{name: "value"}` inside Cypher expressions.
+- **Always use `cypherMutate()`** for CREATE/MERGE/SET/DELETE — never `cypher(query, [])` with an empty aliases array, which generates an invalid `AS ()` clause.
+
+---
+
 ## Key Conventions
 
 ### Styling
