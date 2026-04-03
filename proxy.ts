@@ -23,7 +23,7 @@ import { NextRequest, NextResponse } from "next/server"
 
 const APP_DOMAIN = process.env.NEXT_PUBLIC_APP_DOMAIN ?? ""
 
-export function middleware(request: NextRequest) {
+export function proxy(request: NextRequest) {
   const host = request.headers.get("host") ?? ""
   const pathname = request.nextUrl.pathname
 

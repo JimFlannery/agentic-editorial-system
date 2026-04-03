@@ -3,6 +3,13 @@ import { cn } from "@/lib/utils"
 
 const navItems = [
   { href: "/admin/journals", label: "Journals" },
+  { href: "/admin/users", label: "Users" },
+  { href: "/admin/manuscript-types", label: "Manuscript Types" },
+  { href: "/admin/email-templates", label: "Email Templates" },
+  { href: "/admin/workflows", label: "Workflows" },
+  { href: "/admin/workflow", label: "Workflow Config" },
+  { href: "/admin/troubleshooting", label: "Troubleshooting" },
+  { href: "/admin/graph", label: "Graph View" },
 ]
 
 export default function AdminLayout({ children }: { children: React.ReactNode }) {

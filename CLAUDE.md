@@ -136,7 +136,7 @@ Lists all journals as cards. Journal is the primary organiser — clicking a jou
 All activity for a journal is nested under this path. The journal acronym is the URL slug and is globally unique. The layout at this level injects per-journal CSS custom properties (colours, fonts) so each journal can have its own visual identity.
 
 **Custom domain (e.g. `AgenticES.NEJM.com`)**
-A journal can be accessed via its own subdomain. The infrastructure layer (nginx / Cloudflare Transform Rule) injects `X-Journal-Acronym: NEJM` into the request. `middleware.ts` reads this header and transparently rewrites to `/journal/NEJM/...` — the visitor's URL stays as the custom domain. See `middleware.ts` for configuration examples.
+A journal can be accessed via its own subdomain. The infrastructure layer (nginx / Cloudflare Transform Rule) injects `X-Journal-Acronym: NEJM` into the request. `proxy.ts` reads this header and transparently rewrites to `/journal/NEJM/...` — the visitor's URL stays as the custom domain. See `proxy.ts` for configuration examples.
 
 ---
 
@@ -168,7 +168,7 @@ The editorial layout header contains two switchers:
 ### Route structure
 
 ```
-middleware.ts                                 # Custom domain → /journal/[acronym] rewrite
+proxy.ts                                      # Custom domain → /journal/[acronym] rewrite
 app/
   page.tsx                                    # Platform landing — journal grid
   journal/
@@ -176,8 +176,8 @@ app/
     [acronym]/
       layout.tsx                              # Theming wrapper — injects per-journal CSS vars
       page.tsx                                # Redirects to /journal/[acronym]/editorial
-      author/                                 # Author portal (planned)
-      reviewer/                               # Reviewer portal (planned)
+      author/page.tsx                         # Author portal
+      reviewer/page.tsx                       # Reviewer portal
       editorial/
         layout.tsx                            # Shared layout: journal selector, role selector, sidebar
         page.tsx                              # Redirects to role-specific dashboard (post-auth)
@@ -205,11 +205,17 @@ app/
 There are two distinct admin spaces with different scopes and audiences:
 
 ### `/admin/` — System Admin
-Accessible only to system administrators. Concerns the installation as a whole:
+Accessible only to system administrators. This is the initial setup workspace — typically one expert at a large organisation who configures everything before handing off to journal admins. Sections:
 - **Journals** — add journals, disable journals (prevent new submissions), set journal acronym
-- System-level settings
+- **Users** — system-level user management
+- **Manuscript Types** — submission type definitions
+- **Email Templates** — email template CRUD
+- **Workflows** — all workflow definitions (read)
+- **Workflow Config** — Claude chat for creating and modifying workflows across any journal
+- **Troubleshooting** — Claude chat for diagnosing issues across any journal
+- **Graph View** — read-only sigma.js visualisation of the full workflow graph
 
-Nothing journal-specific lives here. Manuscript types, workflows, email templates, users, and submission queues all belong in the journal workspace.
+**Only Claude writes to the graph.** The Graph View is read-only by design — direct graph editing requires expertise that 99.9% of users will not have.
 
 ### `/editorial/[acronym]/` — Editorial Workspace
 The day-to-day working area for all editorial roles. Shared layout (sidebar, journal selector, role selector) with role-specific dashboard pages as the default landing. Sections:
@@ -612,31 +618,83 @@ When implementing agentic features, use Claude tool use (function calling) to ke
 ## Project Structure
 
 ```
+proxy.ts                                      # Custom domain → /journal/[acronym] rewrite
+docker-compose.yml                            # Self-hosted: app + postgres-age + minio
+db/
+  init.sql                                    # Schema creation (manuscript, workflow, history schemas)
+  migrate.sh                                  # Run numbered migration scripts
+  seed.sql / seed_full.sql                    # Dev seed data
+  002_manuscript_types.*                      # Migration: manuscript types table
+  003_journal_acronym.*                       # Migration: acronym column + unique constraint
+  004_credit.*                                # Migration: CRediT contributor roles
 app/
-  api/chat/route.ts       # Claude streaming API route (POST /api/chat)
-  globals.css             # Tailwind v4 global styles
-  layout.tsx              # Root layout
-  page.tsx                # Home page
+  layout.tsx                                  # Root layout
+  page.tsx                                    # Platform landing — journal grid
+  globals.css                                 # Tailwind v4 global styles
+  admin/                                      # System admin (no journal scope)
+    layout.tsx
+    page.tsx                                  # System admin dashboard
+    journals/                                 # Add / disable journals; set acronym
+    manuscript-types/                         # System-level manuscript type CRUD
+    email-templates/                          # System-level email template CRUD
+    users/                                    # System-level user CRUD
+    workflows/                                # Workflow list
+    workflow/                                 # AI workflow config chat
+    troubleshooting/                          # AI troubleshooting chat
+  journal/
+    page.tsx                                  # Redirects to first journal (or /admin/journals)
+    [acronym]/
+      layout.tsx                              # Theming wrapper — injects per-journal CSS vars
+      page.tsx                               # Redirects to /journal/[acronym]/editorial
+      author/page.tsx                         # Author portal
+      reviewer/page.tsx                       # Reviewer portal
+      editorial/
+        layout.tsx                            # Shared layout: journal selector, role selector, sidebar
+        page.tsx                              # Redirects to role-specific dashboard (post-auth)
+        journal-selector.tsx
+        role-selector.tsx
+        assistant-editor/page.tsx             # AE dashboard: queue stats, checklist intake
+        editor/page.tsx                       # Editor dashboard: decisions, reviewer reports
+        editor-in-chief/page.tsx              # EIC dashboard: escalations, oversight
+        editorial-support/page.tsx            # Support dashboard: correspondence, admin tasks
+        queue/page.tsx                        # Checklist queue (shared across roles)
+        manuscripts/[id]/
+          page.tsx                            # Manuscript detail
+          checklist.tsx                       # AI checklist component
+          actions.ts
+      admin/                                  # Per-journal admin (configuration)
+        layout.tsx
+        journal-selector.tsx
+        page.tsx                              # Journal admin dashboard
+        manuscript-types/                     # Submission type CRUD
+        workflows/                            # Workflow definitions
+        workflow/                             # AI workflow config chat
+        email-templates/                      # Email template CRUD
+        users/                               # Journal users CRUD
+        troubleshooting/                      # AI troubleshooting chat
+  api/
+    chat/route.ts                             # General Claude streaming chat (POST /api/chat)
+    admin/
+      workflow-chat/route.ts                  # Workflow config chat — graph read/write tools
+      troubleshooting-chat/route.ts           # Troubleshooting chat
+    journal-admin/
+      checklist-evaluate/route.ts             # AI checklist evaluation
 components/
-  chat.tsx                # Chat UI client component
-  ui/
-    button.tsx            # Shadcn Button component
+  chat.tsx                                    # Chat UI client component
+  workflow-chat.tsx                           # Workflow config chat UI
+  journal-grid.tsx                            # Platform landing journal cards
+  journal-picker.tsx                          # Multi-journal picker
+  theme-provider.tsx
+  theme-toggle.tsx
+  ui/                                         # Shadcn components (owned source)
+    button.tsx
+    dialog.tsx
+    input.tsx
+    label.tsx
 lib/
-  utils.ts                # cn() helper (tailwind-merge + clsx)
-```
-
-As the project develops, expect to add:
-```
-lib/
-  graph.ts                # Graph DB client and query helpers
-  workflow.ts             # Workflow traversal logic
-app/
-  api/workflow/           # Workflow state API routes
-  api/agent/              # Agentic task API routes
-  api/admin/workflow-chat/route.ts  # Workflow config chat (admin panel)
-  dashboard/              # Editor dashboard
-  submission/             # Author submission flow
-  admin/                  # Admin panel (journal config, workflow builder)
+  graph.ts                                    # Graph DB client and Cypher query helpers
+  credit.ts                                   # CRediT contributor role definitions
+  utils.ts                                    # cn() helper (tailwind-merge + clsx)
 ```
 
 ---

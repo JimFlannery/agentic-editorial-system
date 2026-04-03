@@ -36,6 +36,11 @@ const sections = [
     title: "Troubleshooting",
     description: "Describe a problem and Claude will diagnose it — querying manuscripts, gates, and the event log to find the root cause.",
   },
+  {
+    href: "/admin/graph",
+    title: "Graph View",
+    description: "Read-only visualisation of the workflow graph. Inspect nodes and relationships to verify Claude's mutations produced the expected structure.",
+  },
 ]
 
 export default function AdminHomePage() {
