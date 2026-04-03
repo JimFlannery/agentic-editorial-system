@@ -160,14 +160,14 @@ The editorial workspace header contains two switchers:
 
 ### Role-specific dashboards
 
-All four editorial roles share the `/editorial/[acronym]` layout (sidebar nav, journal selector, role selector) but land on role-tailored dashboard pages:
+All four editorial roles share the `/journal/[acronym]/editorial` layout (sidebar nav, journal selector, role selector) but land on role-tailored dashboard pages:
 
 | URL | Audience | Purpose |
 |---|---|---|
-| `/editorial/[acronym]/assistant-editor` | Assistant Editors | Submission intake, admin checklist, reviewer invitations |
-| `/editorial/[acronym]/editor` | Editors | Reviewer reports, accept/reject/revise decisions |
-| `/editorial/[acronym]/editor-in-chief` | Editor-in-Chief | Editorial oversight, escalations, final decisions, board management |
-| `/editorial/[acronym]/editorial-support` | Editorial Support | Author correspondence, administrative tasks |
+| `/journal/[acronym]/editorial/assistant-editor` | Assistant Editors | Submission intake, admin checklist, reviewer invitations |
+| `/journal/[acronym]/editorial/editor` | Editors | Reviewer reports, accept/reject/revise decisions |
+| `/journal/[acronym]/editorial/editor-in-chief` | Editor-in-Chief | Editorial oversight, escalations, final decisions, board management |
+| `/journal/[acronym]/editorial/editorial-support` | Editorial Support | Author correspondence, administrative tasks |
 
 The Checklist Queue and manuscript detail pages are shared across editorial roles, accessible from the sidebar. The role dashboard is the default landing only.
 
@@ -175,28 +175,28 @@ The Checklist Queue and manuscript detail pages are shared across editorial role
 
 ## Admin Architecture
 
-Two levels of administration with distinct scopes:
+Three levels with distinct scopes:
 
 ### System Admin (`/admin`)
 Manages the installation as a whole. Accessible only to `system_admin` role.
 - **Journals** — add journals, set acronym, disable journals (stop accepting new submissions)
 - System-level settings
 
-### Editorial Workspace (`/editorial/[acronym]`)
-The day-to-day working area for all editorial roles. All data is scoped to the current journal. Sections:
-- **Role dashboards** — tailored landing pages for each role (Assistant Editor, Editor, Editor-in-Chief, Editorial Support)
+### Editorial Workspace (`/journal/[acronym]/editorial`)
+The day-to-day working area for all editorial roles. Scoped to one journal at a time. The journal acronym in the URL is the scope — e.g. `/journal/NEJM/editorial/queue`. Sections:
+- **Role dashboards** — tailored landing pages for Assistant Editor, Editor, Editor-in-Chief, and Editorial Support
 - **Checklist Queue** — newly submitted manuscripts awaiting admin review
 - **Manuscript detail** — full metadata, AI-powered checklist evaluation, override controls, and action buttons (Pass to EIC, Unsubmit, Reject with Transfer)
 
-### Journal Admin (`/journal-admin/[acronym]`)
-Configuration and settings for a specific journal. Separate from the editorial workspace — editors work manuscripts in `/editorial/`, journal admins configure the journal in `/journal-admin/`. Sections:
-- **Dashboard** — journal configuration at a glance
+### Journal Admin (`/journal/[acronym]/admin`)
+Configuration workspace for a specific journal, separate from the editorial workflow. Editors work manuscripts in `/editorial`; journal admins configure the journal in `/admin`. Header links back to the editorial workspace. Sections:
+- **Dashboard** — queue at-a-glance with links into the editorial workspace
 - **Manuscript Types** — submission types (Original Research, Review Article, etc.) with acronyms and workflow links
-- **Workflows** — workflow definitions rendered as linear step lists
-- **Workflow Config** — AI chat interface for configuring workflows in plain language
+- **Workflows** — workflow definitions rendered as numbered linear step lists with gate branching shown inline
+- **Workflow Config** — AI chat interface for configuring workflows in plain language (confirm-before-commit)
 - **Email Templates** — reusable email templates attached to workflow communication steps
-- **Users** — people with roles on this journal
-- **Troubleshooting** — AI chat for diagnosing stuck manuscripts and stalled gates
+- **Users** — people with roles on this journal; add and edit with role checkboxes
+- **Troubleshooting** — AI chat for diagnosing and fixing stuck manuscripts and stalled gates
 
 ---
 
