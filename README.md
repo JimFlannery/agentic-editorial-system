@@ -74,7 +74,44 @@ Claude translates this into graph mutations — creating Gate nodes, setting thr
 
 Claude queries the manuscript's current gate state, task assignments, reviewer invitations, and event history, then explains what went wrong and what it will do to fix it. The same confirm-before-commit rule applies — Claude stages the corrective action and waits for explicit approval. No support ticket, no vendor call.
 
-### 2. AI-Assisted Reviewer Selection
+This makes editorial offices genuinely self-reliant. Routine problems that previously required vendor or IT involvement can be diagnosed and resolved by the editorial team themselves.
+
+### 2. AI-Assisted Admin Checklist Evaluation
+
+Every manuscript passes through an admin checklist before it reaches an editor. In traditional systems this is entirely manual — an assistant editor opens each submission and ticks boxes. In this system, Claude evaluates each item automatically when the manuscript is submitted.
+
+Checklist items that are unambiguously met (cover letter present, all author affiliations complete) are marked `pass` immediately. Items that require judgment — ethics declarations, figure resolution, conflict-of-interest disclosures — are evaluated by Claude and returned with a status (`pass`, `fail`, or `borderline`) and a plain-language rationale.
+
+**Borderline cases are surfaced for human review**, not silently passed or failed. The assistant editor sees Claude's reasoning inline and can accept it or override with a single click. This preserves human accountability at the triage step while eliminating the mechanical work of reviewing clean submissions.
+
+Once all items are resolved, the assistant editor clicks **Pass to EIC** — which updates the manuscript status and routes it forward in the workflow. The full checklist evaluation and any overrides are written to the history event log, creating an auditable record of who decided what and when.
+
+The checklist questions themselves are admin-configurable per journal (`manuscript.form_fields`) — no code change required to add or remove a checklist item.
+
+### 3. Research Integrity Screening
+
+Academic fraud is accelerating. Papers from suspected paper mills are doubling every 18 months — roughly ten times faster than legitimate publication growth. Image manipulation, fake reviewer networks, AI-generated manuscripts, and organised submission fraud are routine enough that major publishers now screen every submission automatically. This system does the same, as a Claude agent that runs at submission time and produces a structured integrity report alongside the admin checklist.
+
+The agent evaluates a configurable set of signals and flags anything that warrants human attention. No manuscript is blocked automatically — the report is surfaced to the assistant editor as part of the checklist review, with the same confirm-before-action pattern used elsewhere in the system.
+
+**Signals screened:**
+
+| Signal | What is checked |
+|---|---|
+| **Image integrity** | Figures are scanned for duplication, cloning, splicing, and AI-generated content using image forensics |
+| **IP anomalies** | Submitter IP is compared against suggested reviewer IPs, co-author IPs, and known datacenter/VPN ranges — overlap is a paper mill marker |
+| **Tortured phrases** | Manuscript text is checked for known paraphrasing patterns (e.g. "bosom malignancy" for "breast cancer") that indicate machine-translated or auto-paraphrased mill output |
+| **Reviewer manipulation** | Suggested reviewers are checked: unverifiable institutional emails, non-existent ORCID records, domain registration age, and IP overlap with the submitting author |
+| **AI-generated text** | Linguistic patterns inconsistent with the declared authorship or discipline are flagged for editorial attention |
+| **ORCID and identity** | Author ORCID records are verified; mismatches between declared affiliation and ORCID history are noted |
+| **Citation anomalies** | Unusual self-citation rates, citation rings, or references to retracted or predatory-journal sources |
+| **Metadata inconsistencies** | Document creation metadata (author field, creation date, revision history) is checked for contradictions with the submission |
+
+Each signal produces one of three outcomes: **clear**, **note** (for context), or **flag** (warrants editorial review). The overall report is attached to the manuscript record and written to the history event log. Editors can dismiss a flag with a reason, escalate it for further review, or reject the submission outright — all actions are auditable.
+
+The signal set is configurable per journal via `manuscript.journal_settings`. Journals with lower fraud exposure can run a lighter screen; high-volume journals can enable all signals and tune thresholds. Signal results are stored as JSONB in the history event log — no separate schema is needed.
+
+### 4. AI-Assisted Reviewer Selection
 
 An assistant editor triggers the agent, which queries the graph for:
 - Reviewers with matching subject area expertise
@@ -188,7 +225,7 @@ This license was chosen deliberately. Editorial management systems are delivered
 ### Infrastructure
 - **Docker Compose stack** — `apache/age` (PostgreSQL + AGE extension) on port 5432, MinIO on ports 9000/9001, both with persistent volumes and healthchecks
 - **Database schemas** — `manuscript` schema (journals, people, roles, manuscripts, manuscript types, assignments), `history` schema (append-only event log), AGE property graph (`ems_graph`)
-- **Migrations** — `db/init.sql` (base schema), `db/002_manuscript_types.sql` (manuscript types table), `db/003_journal_acronym.sql` (journal acronym column — unique, required, URL slug)
+- **Migrations** — `db/init.sql` (base schema), `db/002_manuscript_types.sql` (manuscript types table), `db/003_journal_acronym.sql` (journal acronym column — unique, required, URL slug), `db/004_credit.sql` (CRediT contributor roles + `journal_settings` table)
 - **Seed data** — test journal, people with roles, manuscript, graph nodes mirroring relational data (`db/seed.sql`, `db/seed_full.sql`)
 - **`lib/graph.ts`** — database client with `sql()` for parameterised SQL, `cypher()` for graph queries, `cypherMutate()` for graph writes, and `withTransaction()` for multi-step operations
 
@@ -224,6 +261,8 @@ Confirm-before-commit applies to both modes. A Standard Peer Review workflow (5 
 - **Author portal** (`/author/[acronym]`)
 - **Reviewer portal** (`/reviewer/[acronym]`)
 - **Admin-configurable form fields and journal settings** — checklist questions, submission form fields, scalar journal config
+- **CRediT attribution UI** — per-author role selection in the submission form and display on published articles (enabled per journal via `credit_taxonomy_enabled` journal setting)
+- **Research Integrity Screening agent** — per-submission fraud signal report (image forensics, IP anomalies, tortured phrases, reviewer manipulation, AI-generated text, ORCID verification, citation anomalies, metadata checks); signal set configurable per journal via `journal_settings`
 - **Reviewer selection agent**
 
 ---
@@ -272,6 +311,7 @@ Confirm-before-commit applies to both modes. A Standard Peer Review workflow (5 
 │   └── seed_full.sql / seed_full.sh               # Full test dataset
 ├── lib/
 │   ├── graph.ts                                   # sql(), cypher(), cypherMutate(), withTransaction()
+│   ├── credit.ts                                  # CRediT Contributor Role Taxonomy — 14 roles, slugs, degree options
 │   └── utils.ts                                   # cn() helper (tailwind-merge + clsx)
 ├── docker-compose.yml                             # postgres-age + minio services
 ├── CLAUDE.md                                      # Claude Code project guide (architecture decisions)

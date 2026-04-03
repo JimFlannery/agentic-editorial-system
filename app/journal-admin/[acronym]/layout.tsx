@@ -3,6 +3,7 @@ import { notFound } from "next/navigation"
 import { sql } from "@/lib/graph"
 import { cn } from "@/lib/utils"
 import { JournalSelector } from "./journal-selector"
+import { RoleSelector } from "./role-selector"
 
 interface Journal {
   id: string
@@ -35,14 +36,18 @@ export default async function JournalAcronymLayout({
   const base = `/journal-admin/${journal.acronym}`
 
   const navItems = [
-    { href: base,                          label: "Dashboard" },
-    { href: `${base}/queue`,               label: "Checklist Queue" },
-    { href: `${base}/manuscript-types`,    label: "Manuscript Types" },
-    { href: `${base}/workflows`,           label: "Workflows" },
-    { href: `${base}/workflow`,            label: "Workflow Config" },
-    { href: `${base}/email-templates`,     label: "Email Templates" },
-    { href: `${base}/users`,               label: "Users" },
-    { href: `${base}/troubleshooting`,     label: "Troubleshooting" },
+    { href: base,                                  label: "Dashboard" },
+    { href: `${base}/queue`,                       label: "Checklist Queue" },
+    { href: `${base}/assistant-editor`,            label: "Assistant Editor" },
+    { href: `${base}/editor`,                      label: "Editor" },
+    { href: `${base}/editor-in-chief`,             label: "Editor-in-Chief" },
+    { href: `${base}/editorial-support`,           label: "Editorial Support" },
+    { href: `${base}/manuscript-types`,            label: "Manuscript Types" },
+    { href: `${base}/workflows`,                   label: "Workflows" },
+    { href: `${base}/workflow`,                    label: "Workflow Config" },
+    { href: `${base}/email-templates`,             label: "Email Templates" },
+    { href: `${base}/users`,                       label: "Users" },
+    { href: `${base}/troubleshooting`,             label: "Troubleshooting" },
   ]
 
   return (
@@ -58,6 +63,8 @@ export default async function JournalAcronymLayout({
           </Link>
           <span className="text-zinc-300 dark:text-zinc-700">·</span>
           <JournalSelector journals={allJournals} current={journal.acronym} />
+          <span className="text-zinc-300 dark:text-zinc-700">·</span>
+          <RoleSelector acronym={journal.acronym} />
           <Link
             href="/admin"
             className="ml-auto text-xs text-zinc-400 hover:text-zinc-600 dark:hover:text-zinc-300"
