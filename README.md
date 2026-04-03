@@ -125,24 +125,51 @@ The agent returns a ranked shortlist. The assistant editor confirms or overrides
 
 ## Navigation Architecture
 
-The system has two public entry points and a set of role-specific workspaces.
+Journal is the primary organiser. Every route below system admin is nested under `/journal/[acronym]/`, which makes per-journal theming, custom domains, and bookmarkable URLs natural consequences of the structure rather than afterthoughts.
 
 ### Entry points
 
-**`/` — Generic landing page.** Represents the publisher or society. Shows role-based "centers" (Author Center, Reviewer Center, Editorial Center) that are not journal-specific. Clicking a center prompts login, then routes to the correct journal workspace based on the user's roles.
+**`/` — Platform landing page.** Lists all hosted journals as cards. Clicking a journal enters its workspace at `/journal/[acronym]`. No role-center navigation here — journal is the organising concept, not role.
 
-**`/journal/[acronym]` — Per-journal landing page.** Each journal has its own landing page (e.g. `/journal/NEJM`) with centers scoped to that journal. Login from here routes directly to that journal — no journal selection step.
+**`/journal/[acronym]` — Journal workspace root.** All activity for a journal is nested here. The layout at this level injects per-journal CSS custom properties so each journal can carry its own visual identity.
+
+**Custom domain (e.g. `AgenticES.NEJM.com`).** A journal's editorial system can be served from a subdomain of the journal's own domain. The infrastructure layer (nginx or Cloudflare) injects `X-Journal-Acronym: NEJM` into the request; `middleware.ts` rewrites transparently to `/journal/NEJM/...`. The visitor's URL stays as the custom domain.
 
 ### Post-login routing
 
-| Role | Destination |
-|---|---|
-| `author` | `/author/[acronym]` |
-| `reviewer` | `/reviewer/[acronym]` |
-| `assistant_editor`, `editor`, `editor_in_chief`, `editorial_support` | `/journal-admin/[acronym]` |
-| `system_admin` | `/admin` |
+All paths are nested under `/journal/[acronym]/`:
 
-Users with the same role on multiple journals are shown a journal picker during login. Users with exactly one journal are routed directly. Once inside a workspace, a journal selector in the header allows switching between journals without returning to the landing page.
+| Role | Path |
+|---|---|
+| `author` | `/journal/[acronym]/author` |
+| `reviewer` | `/journal/[acronym]/reviewer` |
+| `assistant_editor` | `/journal/[acronym]/editorial/assistant-editor` |
+| `editor` | `/journal/[acronym]/editorial/editor` |
+| `editor_in_chief` | `/journal/[acronym]/editorial/editor-in-chief` |
+| `editorial_support` | `/journal/[acronym]/editorial/editorial-support` |
+| `system_admin` | `/admin` (no journal scope) |
+
+Users with the same role on multiple journals are shown a journal picker during login. Users with exactly one journal are routed directly.
+
+### Header controls (editorial workspace)
+
+The editorial workspace header contains two switchers:
+
+- **Journal selector** — switches between all journals the user has access to, routing to `/journal/[newAcronym]/editorial`
+- **Role selector** — jumps between all role centers for the current journal (Author, Reviewer, Assistant Editor, Editor, Editor-in-Chief, Editorial Support) without going back to the landing page
+
+### Role-specific dashboards
+
+All four editorial roles share the `/editorial/[acronym]` layout (sidebar nav, journal selector, role selector) but land on role-tailored dashboard pages:
+
+| URL | Audience | Purpose |
+|---|---|---|
+| `/editorial/[acronym]/assistant-editor` | Assistant Editors | Submission intake, admin checklist, reviewer invitations |
+| `/editorial/[acronym]/editor` | Editors | Reviewer reports, accept/reject/revise decisions |
+| `/editorial/[acronym]/editor-in-chief` | Editor-in-Chief | Editorial oversight, escalations, final decisions, board management |
+| `/editorial/[acronym]/editorial-support` | Editorial Support | Author correspondence, administrative tasks |
+
+The Checklist Queue and manuscript detail pages are shared across editorial roles, accessible from the sidebar. The role dashboard is the default landing only.
 
 ---
 
@@ -155,10 +182,15 @@ Manages the installation as a whole. Accessible only to `system_admin` role.
 - **Journals** — add journals, set acronym, disable journals (stop accepting new submissions)
 - System-level settings
 
-### Journal Workspace (`/journal-admin/[acronym]`)
-The editorial office for a specific journal. Accessible to editors and journal-level admins. All data is scoped to the current journal. Sections:
-- **Dashboard** — queue counts and at-a-glance status
+### Editorial Workspace (`/editorial/[acronym]`)
+The day-to-day working area for all editorial roles. All data is scoped to the current journal. Sections:
+- **Role dashboards** — tailored landing pages for each role (Assistant Editor, Editor, Editor-in-Chief, Editorial Support)
 - **Checklist Queue** — newly submitted manuscripts awaiting admin review
+- **Manuscript detail** — full metadata, AI-powered checklist evaluation, override controls, and action buttons (Pass to EIC, Unsubmit, Reject with Transfer)
+
+### Journal Admin (`/journal-admin/[acronym]`)
+Configuration and settings for a specific journal. Separate from the editorial workspace — editors work manuscripts in `/editorial/`, journal admins configure the journal in `/journal-admin/`. Sections:
+- **Dashboard** — journal configuration at a glance
 - **Manuscript Types** — submission types (Original Research, Review Article, etc.) with acronyms and workflow links
 - **Workflows** — workflow definitions rendered as linear step lists
 - **Workflow Config** — AI chat interface for configuring workflows in plain language
@@ -233,11 +265,15 @@ This license was chosen deliberately. Editorial management systems are delivered
 - **Landing page** — links to all system-level sections
 - **Journals** — add and edit journals with name, acronym (required, unique, URL slug), ISSN, and subject area
 
-### Journal Workspace (`/journal-admin/[acronym]`)
-All pages are scoped to the journal identified by acronym in the URL. A journal selector in the header allows switching between journals.
-- **Dashboard** — queue counts (awaiting checklist, under review, awaiting revision) with action links
+### Editorial Workspace (`/editorial/[acronym]`)
+The day-to-day working area for all editorial roles. Journal selector and role selector in the header. All pages are scoped to the journal identified by acronym in the URL.
+- **Role dashboards** — tailored landing pages for Assistant Editor (with live queue counts), Editor, Editor-in-Chief, and Editorial Support
 - **Checklist Queue** — list of submitted manuscripts awaiting admin review, with AI evaluation status badges
 - **Manuscript detail** — full manuscript metadata, AI-powered admin checklist evaluation, override controls, and action buttons (Pass to EIC, Unsubmit, Reject with Transfer)
+
+### Journal Admin (`/journal-admin/[acronym]`)
+Configuration workspace, separate from the editorial workflow. Header links back to the editorial workspace.
+- **Dashboard** — journal configuration at a glance
 - **Manuscript Types** — per-journal submission types with acronym, description, workflow link, active/inactive status
 - **Workflows** — workflow definitions filtered to this journal, rendered as numbered linear step lists with gate branching shown inline
 - **Workflow Config** — AI chat for configuring workflows in plain language (confirm-before-commit)
@@ -282,25 +318,41 @@ Confirm-before-commit applies to both modes. A Standard Peer Review workflow (5 
 │   │   ├── layout.tsx                             # System admin shell (Journals only)
 │   │   ├── page.tsx                               # System admin landing
 │   │   └── journals/                              # Add / edit journals
-│   ├── journal-admin/
+│   ├── journal/
+│   │   ├── page.tsx                               # Redirects to first journal (or /admin/journals)
 │   │   └── [acronym]/
-│   │       ├── layout.tsx                         # Journal workspace shell + journal selector
-│   │       ├── journal-selector.tsx               # Client component — journal switcher dropdown
-│   │       ├── page.tsx                           # Dashboard (journal-scoped queue counts)
-│   │       ├── queue/page.tsx                     # Checklist queue
-│   │       ├── manuscripts/[id]/                  # Manuscript detail, checklist, actions
-│   │       ├── manuscript-types/                  # Submission types CRUD
-│   │       ├── workflows/page.tsx                 # Workflow definitions list
-│   │       ├── workflow/page.tsx                  # AI workflow configuration chat
-│   │       ├── email-templates/                   # Email template CRUD
-│   │       ├── users/                             # Journal users CRUD
-│   │       └── troubleshooting/page.tsx           # AI troubleshooting chat
+│   │       ├── layout.tsx                         # Theming wrapper — injects per-journal CSS vars
+│   │       ├── page.tsx                           # Redirects to /journal/[acronym]/editorial
+│   │       ├── editorial/
+│   │       │   ├── layout.tsx                     # Editorial workspace shell + journal/role selectors
+│   │       │   ├── journal-selector.tsx           # Client component — journal switcher dropdown
+│   │       │   ├── role-selector.tsx              # Client component — role switcher dropdown
+│   │       │   ├── page.tsx                       # Redirects to role dashboard (post-auth)
+│   │       │   ├── assistant-editor/page.tsx      # AE dashboard — queue counts, checklist link
+│   │       │   ├── editor/page.tsx                # Editor dashboard
+│   │       │   ├── editor-in-chief/page.tsx       # EIC dashboard
+│   │       │   ├── editorial-support/page.tsx     # Editorial support dashboard
+│   │       │   ├── queue/page.tsx                 # Checklist queue (shared)
+│   │       │   └── manuscripts/[id]/              # Manuscript detail, checklist, actions
+│   │       └── admin/
+│   │           ├── layout.tsx                     # Journal admin shell + journal selector
+│   │           ├── journal-selector.tsx           # Client component — journal switcher dropdown
+│   │           ├── page.tsx                       # Journal admin dashboard
+│   │           ├── manuscript-types/              # Submission types CRUD
+│   │           ├── workflows/page.tsx             # Workflow definitions list
+│   │           ├── workflow/page.tsx              # AI workflow configuration chat
+│   │           ├── email-templates/               # Email template CRUD
+│   │           ├── users/                         # Journal users CRUD
+│   │           └── troubleshooting/page.tsx       # AI troubleshooting chat
 │   ├── globals.css                                # Tailwind v4 global styles + theme tokens
 │   ├── layout.tsx                                 # Root layout
 │   └── page.tsx                                   # Home / generic landing page
+├── middleware.ts                                      # Custom domain → /journal/[acronym] rewrite
 ├── components/
 │   ├── chat.tsx                                   # General chat UI
 │   ├── workflow-chat.tsx                          # Workflow/troubleshooting chat with tool badges
+│   ├── journal-grid.tsx                           # Homepage journal cards
+│   ├── theme-toggle.tsx                           # Light/dark mode toggle
 │   └── ui/                                        # Shadcn components (owned, editable)
 ├── db/
 │   ├── init.sql                                   # AGE extension, graph, all schemas and tables

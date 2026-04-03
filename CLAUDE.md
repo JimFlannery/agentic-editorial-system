@@ -129,77 +129,73 @@ When writing or updating `INSTALL.md`, follow these conventions:
 
 ### Entry points
 
-There are two public entry points, both showing "centers" (role-based portals):
+**`/` — Platform landing page**
+Lists all journals as cards. Journal is the primary organiser — clicking a journal card enters that journal's workspace at `/journal/[acronym]`.
 
-**`/` — Generic landing page**
-Represents the publisher or society as a whole. Not journal-specific. Centers here are cross-journal: Author Center, Reviewer Center, Editorial Center. Clicking a center prompts login (or proceeds if already authenticated), then routes based on the user's journals for that role (see post-login routing below).
+**`/journal/[acronym]` — Journal workspace root**
+All activity for a journal is nested under this path. The journal acronym is the URL slug and is globally unique. The layout at this level injects per-journal CSS custom properties (colours, fonts) so each journal can have its own visual identity.
 
-**`/journal/[acronym]` — Per-journal landing page**
-Each journal has its own landing page (e.g. `/journal/NEJM`). Centers here are scoped to that journal only. Login from this page always routes to that specific journal — no journal selection step needed.
-
----
-
-### Centers
-
-Centers are role-grouped entry points shown on landing pages:
-
-| Center | Destination after login |
-|---|---|
-| Author Center | `/author/[acronym]` |
-| Reviewer Center | `/reviewer/[acronym]` |
-| Editorial Center | `/journal-admin/[acronym]` |
-| System Admin | `/admin` |
-
----
-
-### Post-login routing
-
-After authentication, the system determines where to send the user based on the role they clicked and the journals they belong to:
-
-1. **Arriving from `/journal/[acronym]`** — journal is already known. Route directly to `/{role-path}/[acronym]`.
-2. **Arriving from `/`** — look up all journals where the user has the requested role:
-   - **One journal** → route directly to `/{role-path}/[acronym]`
-   - **Multiple journals** → present a journal picker during the login flow, then route to the selected journal
-   - **No journals** → show an appropriate error (access not provisioned)
-
-Already-authenticated users clicking a center skip the login step and go straight to the routing logic above.
+**Custom domain (e.g. `AgenticES.NEJM.com`)**
+A journal can be accessed via its own subdomain. The infrastructure layer (nginx / Cloudflare Transform Rule) injects `X-Journal-Acronym: NEJM` into the request. `middleware.ts` reads this header and transparently rewrites to `/journal/NEJM/...` — the visitor's URL stays as the custom domain. See `middleware.ts` for configuration examples.
 
 ---
 
 ### Role-to-path mapping
 
-| Role(s) | Path |
+All paths are nested under `/journal/[acronym]/`:
+
+| Role | Path |
 |---|---|
-| `author` | `/author/[acronym]` |
-| `reviewer` | `/reviewer/[acronym]` |
-| `assistant_editor`, `editor`, `editor_in_chief`, `editorial_support` | `/journal-admin/[acronym]` |
-| `system_admin` | `/admin` |
-
-A person can hold different roles across different journals. A reviewer on NEJM who is also an author on JAMA will see two centers (or two journal options within the same center) on the generic home page.
-
----
-
-### Journal switching
-
-Once inside a role area, users with the same role on multiple journals can switch journals via the journal selector in the layout header — without going back to the landing page.
+| `author` | `/journal/[acronym]/author` |
+| `reviewer` | `/journal/[acronym]/reviewer` |
+| `assistant_editor` | `/journal/[acronym]/editorial/assistant-editor` |
+| `editor` | `/journal/[acronym]/editorial/editor` |
+| `editor_in_chief` | `/journal/[acronym]/editorial/editor-in-chief` |
+| `editorial_support` | `/journal/[acronym]/editorial/editorial-support` |
+| `system_admin` | `/admin` (no journal scope) |
 
 ---
 
-### Planned route structure
+### Header controls (editorial workspace)
+
+The editorial layout header contains two switchers:
+
+- **Journal selector** — switches between all journals the user has access to, routing to `/journal/[newAcronym]/editorial`
+- **Role selector** — jumps between all role centers for the current journal (Author, Reviewer, Assistant Editor, Editor, Editor-in-Chief, Editorial Support) without returning to the landing page
+
+---
+
+### Route structure
 
 ```
+middleware.ts                                 # Custom domain → /journal/[acronym] rewrite
 app/
-  page.tsx                          # Generic landing page — all centers
+  page.tsx                                    # Platform landing — journal grid
   journal/
+    page.tsx                                  # Redirects to first journal (or /admin/journals)
     [acronym]/
-      page.tsx                      # Per-journal landing page — journal-scoped centers
-  author/
-    [acronym]/                      # Author portal for a specific journal
-  reviewer/
-    [acronym]/                      # Reviewer portal for a specific journal
-  journal-admin/
-    [acronym]/                      # Editorial workspace (editors, AEs, support)
-  admin/                            # System admin (no journal scope)
+      layout.tsx                              # Theming wrapper — injects per-journal CSS vars
+      page.tsx                                # Redirects to /journal/[acronym]/editorial
+      author/                                 # Author portal (planned)
+      reviewer/                               # Reviewer portal (planned)
+      editorial/
+        layout.tsx                            # Shared layout: journal selector, role selector, sidebar
+        page.tsx                              # Redirects to role-specific dashboard (post-auth)
+        assistant-editor/page.tsx             # AE dashboard: queue stats, checklist intake
+        editor/page.tsx                       # Editor dashboard: decisions, reviewer reports
+        editor-in-chief/page.tsx              # EIC dashboard: escalations, oversight
+        editorial-support/page.tsx            # Support dashboard: correspondence, admin tasks
+        queue/page.tsx                        # Checklist queue (shared across roles)
+        manuscripts/[id]/page.tsx             # Manuscript detail + AI checklist
+      admin/                                  # Journal configuration (admin-only)
+        page.tsx                              # Admin dashboard
+        manuscript-types/                     # Submission type CRUD
+        workflows/                            # Workflow definitions
+        workflow/                             # AI workflow config chat
+        email-templates/                      # Email template CRUD
+        users/                                # Journal users CRUD
+        troubleshooting/                      # AI troubleshooting chat
+  admin/                                      # System admin (no journal scope)
 ```
 
 ---
@@ -215,17 +211,21 @@ Accessible only to system administrators. Concerns the installation as a whole:
 
 Nothing journal-specific lives here. Manuscript types, workflows, email templates, users, and submission queues all belong in the journal workspace.
 
-### `/journal-admin/[acronym]/` — Journal Workspace
-Accessible to editors and journal-level admins, scoped to one journal at a time. The journal acronym is the URL slug — e.g. `/journal-admin/NEJM/manuscripts`. This makes URLs bookmarkable and human-readable.
+### `/editorial/[acronym]/` — Editorial Workspace
+The day-to-day working area for all editorial roles. Shared layout (sidebar, journal selector, role selector) with role-specific dashboard pages as the default landing. Sections:
+- **Role dashboards** — `assistant-editor`, `editor`, `editor-in-chief`, `editorial-support`
+- **Checklist Queue** — newly submitted manuscripts awaiting admin review
+- **Manuscript detail** — AI checklist, override controls, pass/unsubmit/reject actions
 
-Journal-scoped sections (all under `/journal-admin/[acronym]/`):
-- Dashboard / queue
-- Manuscripts
+### `/journal-admin/[acronym]/` — Journal Admin
+Configuration and settings for a specific journal. Separate from the editorial workspace — editors work in `/editorial/`, journal admins configure in `/journal-admin/`. Sections:
+- Dashboard
 - Manuscript types
 - Workflows
+- Workflow Config (AI chat)
 - Email templates
 - Users (people with roles on this journal)
-- Settings (checklist questions, form fields, scalar config)
+- Troubleshooting (AI chat)
 
 **Journal selector:** Shown in the journal-admin layout header. System admins see all journals plus a link back to `/admin/`. Journal admins see only their assigned journals. If a user has exactly one journal, skip the picker and redirect directly to that journal's workspace.
 
