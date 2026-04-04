@@ -14,13 +14,13 @@ import { Label } from "@/components/ui/label"
 import { addUser, editUser } from "./actions"
 
 const ROLES = [
-  { value: "author", label: "Author" },
-  { value: "reviewer", label: "Reviewer" },
+  { value: "author",           label: "Author" },
+  { value: "reviewer",         label: "Reviewer" },
   { value: "assistant_editor", label: "Assistant Editor" },
-  { value: "editor", label: "Editor" },
-  { value: "editor_in_chief", label: "Editor-in-Chief" },
-  { value: "editorial_support", label: "Editorial Support" },
-  { value: "system_admin", label: "System Admin" },
+  { value: "editor",           label: "Editor" },
+  { value: "editor_in_chief",  label: "Editor-in-Chief" },
+  { value: "editorial_support",label: "Editorial Support" },
+  { value: "journal_admin",    label: "Journal Admin" },
 ]
 
 interface Person {

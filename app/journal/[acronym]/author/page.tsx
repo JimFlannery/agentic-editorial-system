@@ -1,3 +1,32 @@
+import Link from "next/link"
+import { notFound, redirect } from "next/navigation"
+import { headers } from "next/headers"
+import { auth } from "@/lib/auth"
+import { sql } from "@/lib/graph"
+
+interface Manuscript {
+  id: string
+  title: string
+  status: string
+  manuscript_type: string
+  submitted_at: string
+}
+
+const STATUS_META: Record<string, { label: string; cls: string }> = {
+  submitted:          { label: "In Review Queue",   cls: "bg-blue-100 text-blue-700 dark:bg-blue-900/30 dark:text-blue-300" },
+  under_review:       { label: "Under Review",      cls: "bg-violet-100 text-violet-700 dark:bg-violet-900/30 dark:text-violet-300" },
+  revision_requested: { label: "Revision Requested", cls: "bg-amber-100 text-amber-700 dark:bg-amber-900/30 dark:text-amber-300" },
+  accepted:           { label: "Accepted",           cls: "bg-green-100 text-green-700 dark:bg-green-900/30 dark:text-green-300" },
+  rejected:           { label: "Rejected",           cls: "bg-red-100 text-red-700 dark:bg-red-900/30 dark:text-red-300" },
+  withdrawn:          { label: "Withdrawn",          cls: "bg-zinc-100 text-zinc-500 dark:bg-zinc-800 dark:text-zinc-400" },
+}
+
+function formatDate(iso: string) {
+  return new Date(iso).toLocaleDateString("en-US", {
+    year: "numeric", month: "short", day: "numeric",
+  })
+}
+
 export default async function AuthorPage({
   params,
 }: {
@@ -5,24 +34,131 @@ export default async function AuthorPage({
 }) {
   const { acronym } = await params
 
-  return (
-    <div className="min-h-screen bg-zinc-50 dark:bg-zinc-950 flex items-center justify-center px-6">
-      <div className="max-w-md w-full text-center">
-        <p className="text-xs font-medium text-zinc-400 uppercase tracking-widest mb-3">
-          {acronym} · Author Center
-        </p>
-        <h1 className="text-2xl font-semibold text-zinc-900 dark:text-zinc-100 mb-3">
-          Author Center
+  // Auth check
+  const session = await auth.api.getSession({ headers: await headers() })
+  if (!session) redirect(`/login?next=/journal/${acronym}/author`)
+
+  // Journal lookup
+  const journalRows = await sql<{ id: string; name: string }>(
+    "SELECT id, name FROM manuscript.journals WHERE UPPER(acronym) = UPPER($1)",
+    [acronym]
+  )
+  const journal = journalRows[0]
+  if (!journal) notFound()
+
+  // Person lookup — links auth user to editorial identity
+  const personRows = await sql<{ id: string; full_name: string }>(
+    "SELECT id, full_name FROM manuscript.people WHERE auth_user_id = $1 AND journal_id = $2",
+    [session.user.id, journal.id]
+  )
+  const person = personRows[0]
+
+  // No person record for this journal
+  if (!person) {
+    return (
+      <div className="max-w-lg">
+        <h1 className="text-xl font-semibold text-zinc-900 dark:text-zinc-100 mb-2">
+          Account not provisioned
         </h1>
-        <p className="text-sm text-zinc-500 dark:text-zinc-400 leading-relaxed mb-6">
-          Submit manuscripts, track submission status, respond to revision requests,
-          and manage your author profile for {acronym}.
+        <p className="text-sm text-zinc-500 dark:text-zinc-400 leading-relaxed">
+          Your account ({session.user.email}) does not have an author profile for{" "}
+          <span className="font-medium text-zinc-700 dark:text-zinc-300">{acronym}</span>.
+          Please contact the editorial office to have your account set up.
         </p>
-        <div className="rounded-xl border border-dashed border-zinc-200 dark:border-zinc-800 px-6 py-8">
-          <p className="text-sm text-zinc-400 dark:text-zinc-500">
-            Author portal — coming soon.
-          </p>
+      </div>
+    )
+  }
+
+  // Fetch manuscripts
+  const manuscripts = await sql<Manuscript>(`
+    SELECT id, title, status, manuscript_type, submitted_at::text AS submitted_at
+    FROM manuscript.manuscripts
+    WHERE submitted_by = $1
+    ORDER BY submitted_at DESC
+  `, [person.id])
+
+  // Quick counts
+  const active = manuscripts.filter(
+    (m) => m.status === "submitted" || m.status === "under_review"
+  ).length
+  const revisions = manuscripts.filter((m) => m.status === "revision_requested").length
+  const decisions = manuscripts.filter(
+    (m) => m.status === "accepted" || m.status === "rejected"
+  ).length
+
+  return (
+    <div>
+      <h1 className="text-xl font-semibold text-zinc-900 dark:text-zinc-100 mb-1">
+        Author Center
+      </h1>
+      <p className="text-sm text-zinc-500 dark:text-zinc-400 mb-8">
+        Welcome back,{" "}
+        <span className="font-medium text-zinc-700 dark:text-zinc-300">{person.full_name}</span>.
+      </p>
+
+      {/* Stats */}
+      <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 mb-8">
+        {[
+          { label: "Active Submissions", count: active },
+          { label: "Awaiting Revision",  count: revisions },
+          { label: "Decisions Received", count: decisions },
+        ].map((stat) => (
+          <div
+            key={stat.label}
+            className="rounded-xl border border-zinc-200 dark:border-zinc-800 bg-white dark:bg-zinc-900 px-5 py-4"
+          >
+            <p className="text-2xl font-bold text-zinc-900 dark:text-zinc-100 mb-1">{stat.count}</p>
+            <p className="text-sm font-medium text-zinc-700 dark:text-zinc-300">{stat.label}</p>
+          </div>
+        ))}
+      </div>
+
+      {/* Manuscript list */}
+      <div className="rounded-xl border border-zinc-200 dark:border-zinc-800 bg-white dark:bg-zinc-900 overflow-hidden">
+        <div className="px-5 py-3 border-b border-zinc-100 dark:border-zinc-800 flex items-center justify-between">
+          <h2 className="text-sm font-medium text-zinc-900 dark:text-zinc-100">My Submissions</h2>
+          <span className="text-xs text-zinc-400">{manuscripts.length} total</span>
         </div>
+
+        {manuscripts.length === 0 ? (
+          <div className="px-5 py-12 text-center">
+            <p className="text-sm text-zinc-500 dark:text-zinc-400 mb-4">
+              No submissions yet.
+            </p>
+            <Link
+              href={`/journal/${acronym}/author/submit`}
+              className="inline-flex items-center rounded-lg bg-zinc-900 dark:bg-zinc-100 text-white dark:text-zinc-900 text-sm font-medium px-4 py-2 hover:bg-zinc-700 dark:hover:bg-zinc-300 transition-colors"
+            >
+              Submit a manuscript
+            </Link>
+          </div>
+        ) : (
+          <ul className="divide-y divide-zinc-100 dark:divide-zinc-800">
+            {manuscripts.map((m) => {
+              const meta = STATUS_META[m.status]
+              return (
+                <li key={m.id}>
+                  <Link
+                    href={`/journal/${acronym}/author/manuscripts/${m.id}`}
+                    className="flex items-center gap-4 px-5 py-3.5 hover:bg-zinc-50 dark:hover:bg-zinc-800/50 transition-colors"
+                  >
+                    <div className="flex-1 min-w-0">
+                      <p className="text-sm font-medium text-zinc-900 dark:text-zinc-100 truncate">
+                        {m.title}
+                      </p>
+                      <p className="text-xs text-zinc-400 mt-0.5">
+                        {m.manuscript_type.replace(/_/g, " ")} · Submitted {formatDate(m.submitted_at)}
+                      </p>
+                    </div>
+                    <span className={`shrink-0 text-xs font-medium px-2.5 py-1 rounded-full ${meta?.cls ?? "bg-zinc-100 text-zinc-500"}`}>
+                      {meta?.label ?? m.status}
+                    </span>
+                  </Link>
+                </li>
+              )
+            })}
+          </ul>
+        )}
       </div>
     </div>
   )

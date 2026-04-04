@@ -66,15 +66,57 @@ export default async function JournalAdminDashboardPage({
     },
   ]
 
+  const base = `/journal/${acronym}/admin`
+
+  const sections = [
+    {
+      href: `${base}/manuscript-types`,
+      title: "Manuscript Types",
+      description: "Define submission types for this journal (Original Research, Review Article, etc.) and link each to a workflow.",
+    },
+    {
+      href: `${base}/form-fields`,
+      title: "Form Fields",
+      description: "Control which fields appear on the author submission form — toggle standard fields, add custom questions, and drag to reorder.",
+    },
+    {
+      href: `${base}/workflows`,
+      title: "Workflows",
+      description: "View workflow definitions for this journal, rendered as numbered step lists with gate branching shown inline.",
+    },
+    {
+      href: `${base}/workflow`,
+      title: "Workflow Config",
+      description: "Use the AI assistant to modify workflows in plain language. Describe the change — Claude stages it for your confirmation before committing.",
+    },
+    {
+      href: `${base}/email-templates`,
+      title: "Email Templates",
+      description: "Manage reusable email templates for reviewer invitations, decision letters, reminders, and other workflow communications.",
+    },
+    {
+      href: `${base}/users`,
+      title: "Users",
+      description: "Manage people with roles on this journal — add team members, edit role assignments, and deactivate access.",
+    },
+    {
+      href: `${base}/troubleshooting`,
+      title: "Troubleshooting",
+      description: "Describe a problem and Claude will diagnose it — querying manuscripts, gates, and the event log to find the root cause.",
+    },
+  ]
+
   return (
     <div>
       <h1 className="text-xl font-semibold text-zinc-900 dark:text-zinc-100 mb-1">
-        Journal Admin Center
+        Journal Admin
       </h1>
       <p className="text-sm text-zinc-500 dark:text-zinc-400 mb-8">
-        Manage incoming submissions, run admin checklists, and route manuscripts to the editorial team.
+        Configure and manage your journal — workflows, team, templates, and submission types.
       </p>
 
+      {/* Queue at-a-glance */}
+      <h2 className="text-sm font-medium text-zinc-900 dark:text-zinc-100 mb-3">Queue</h2>
       <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 mb-10">
         {stats.map((stat) => (
           <Link
@@ -98,34 +140,19 @@ export default async function JournalAdminDashboardPage({
         ))}
       </div>
 
-      <div className="rounded-xl border border-zinc-200 dark:border-zinc-800 bg-white dark:bg-zinc-900 px-5 py-4">
-        <h2 className="font-medium text-zinc-900 dark:text-zinc-100 text-sm mb-1">Admin Checklist</h2>
-        <p className="text-xs text-zinc-500 dark:text-zinc-400 leading-relaxed mb-3">
-          Each submitted manuscript must pass the admin checklist before being sent to the Editor-in-Chief.
-          AI assistance evaluates each item automatically — borderline cases are flagged for human review.
-        </p>
-        <ul className="space-y-1">
-          {[
-            "Figure format meets requirements (300 dpi)",
-            "Conflict of interest form submitted (if applicable)",
-            "IRB / ethics requirements verified (if applicable)",
-            "Cover letter submitted",
-            "All author and institution information complete",
-          ].map((item) => (
-            <li key={item} className="flex items-center gap-2 text-xs text-zinc-600 dark:text-zinc-400">
-              <span className="w-1.5 h-1.5 rounded-full bg-zinc-300 dark:bg-zinc-600 shrink-0" />
-              {item}
-            </li>
-          ))}
-        </ul>
-        <div className="mt-4">
+      {/* Configuration sections */}
+      <h2 className="text-sm font-medium text-zinc-900 dark:text-zinc-100 mb-3">Configuration</h2>
+      <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+        {sections.map((s) => (
           <Link
-            href={`/journal/${acronym}/editorial/queue`}
-            className="inline-flex items-center gap-1.5 text-xs font-medium text-zinc-700 dark:text-zinc-300 bg-zinc-100 dark:bg-zinc-800 hover:bg-zinc-200 dark:hover:bg-zinc-700 px-3 py-1.5 rounded-lg transition-colors"
+            key={s.href}
+            href={s.href}
+            className="block rounded-xl border border-zinc-200 dark:border-zinc-800 bg-white dark:bg-zinc-900 px-5 py-4 hover:border-zinc-400 dark:hover:border-zinc-600 transition-colors"
           >
-            Open checklist queue →
+            <p className="font-medium text-zinc-900 dark:text-zinc-100 text-sm mb-1">{s.title}</p>
+            <p className="text-xs text-zinc-500 dark:text-zinc-400 leading-relaxed">{s.description}</p>
           </Link>
-        </div>
+        ))}
       </div>
     </div>
   )

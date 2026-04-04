@@ -19,6 +19,7 @@
 
 import Anthropic from "@anthropic-ai/sdk"
 import { sql, cypher, cypherMutate } from "@/lib/graph"
+import { requireSystemAdmin } from "@/lib/api-auth"
 
 const client = new Anthropic()
 
@@ -544,6 +545,9 @@ Be concise. Admins are editorial domain experts, not engineers. Avoid graph/data
 // ---------------------------------------------------------------------------
 
 export async function POST(req: Request) {
+  const { deny } = await requireSystemAdmin()
+  if (deny) return deny
+
   const { messages, journalId } = await req.json() as {
     messages: Message[]
     journalId: string

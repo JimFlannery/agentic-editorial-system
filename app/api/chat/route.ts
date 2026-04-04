@@ -1,9 +1,13 @@
-import Anthropic from "@anthropic-ai/sdk";
+import Anthropic from "@anthropic-ai/sdk"
+import { requireApiSession } from "@/lib/api-auth"
 
-const client = new Anthropic();
+const client = new Anthropic()
 
 export async function POST(req: Request) {
-  const { messages } = await req.json();
+  const { deny } = await requireApiSession()
+  if (deny) return deny
+
+  const { messages } = await req.json()
 
   const stream = client.messages.stream({
     model: "claude-opus-4-6",

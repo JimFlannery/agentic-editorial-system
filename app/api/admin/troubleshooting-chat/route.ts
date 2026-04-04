@@ -12,6 +12,7 @@
 
 import Anthropic from "@anthropic-ai/sdk"
 import { sql, cypher, cypherMutate } from "@/lib/graph"
+import { requireSystemAdmin } from "@/lib/api-auth"
 import type { StagedMutation } from "@/app/api/admin/workflow-chat/route"
 
 const client = new Anthropic()
@@ -305,6 +306,9 @@ Be direct and practical. Lead with the diagnosis ("The manuscript is stuck at th
 // ---------------------------------------------------------------------------
 
 export async function POST(req: Request) {
+  const { deny } = await requireSystemAdmin()
+  if (deny) return deny
+
   const { messages, journalId } = await req.json() as { messages: Message[]; journalId: string }
 
   if (!journalId) {

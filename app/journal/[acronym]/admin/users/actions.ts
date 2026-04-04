@@ -3,12 +3,19 @@
 import { sql } from "@/lib/graph"
 import { revalidatePath } from "next/cache"
 
+// Roles journal-admins are permitted to assign. system_admin is excluded —
+// that is only assignable via the /admin system-level users page.
+const ASSIGNABLE_ROLES = new Set([
+  "author", "reviewer", "assistant_editor", "editor",
+  "editor_in_chief", "editorial_support", "journal_admin",
+])
+
 export async function addUser(formData: FormData) {
   const journal_id = formData.get("journal_id") as string
   const full_name = (formData.get("full_name") as string)?.trim()
   const email = (formData.get("email") as string)?.trim()
   const orcid = (formData.get("orcid") as string)?.trim() || null
-  const roles = formData.getAll("roles") as string[]
+  const roles = (formData.getAll("roles") as string[]).filter((r) => ASSIGNABLE_ROLES.has(r))
 
   if (!journal_id) throw new Error("Journal is required")
   if (!full_name) throw new Error("Full name is required")
@@ -44,7 +51,7 @@ export async function editUser(id: string, journalId: string, formData: FormData
   const full_name = (formData.get("full_name") as string)?.trim()
   const email = (formData.get("email") as string)?.trim()
   const orcid = (formData.get("orcid") as string)?.trim() || null
-  const roles = formData.getAll("roles") as string[]
+  const roles = (formData.getAll("roles") as string[]).filter((r) => ASSIGNABLE_ROLES.has(r))
 
   if (!full_name) throw new Error("Full name is required")
   if (!email) throw new Error("Email is required")

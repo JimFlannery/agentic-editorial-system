@@ -1,5 +1,6 @@
 import Anthropic from "@anthropic-ai/sdk"
 import { sql } from "@/lib/graph"
+import { requireJournalRole } from "@/lib/api-auth"
 
 const client = new Anthropic()
 
@@ -76,6 +77,7 @@ export async function POST(req: Request) {
     return Response.json({ error: "manuscriptId required" }, { status: 400 })
   }
 
+  // Fetch journal_id from DB first — never trust it from the client
   const [manuscript] = await sql<ManuscriptRow>(`
     SELECT
       m.id,
@@ -95,6 +97,13 @@ export async function POST(req: Request) {
   if (!manuscript) {
     return Response.json({ error: "Manuscript not found" }, { status: 404 })
   }
+
+  // Verify caller has an editorial role on this journal
+  const { deny } = await requireJournalRole(
+    manuscript.journal_id,
+    ["assistant_editor", "editor", "editor_in_chief", "editorial_support", "journal_admin"]
+  )
+  if (deny) return deny
 
   const prompt = `You are the admin checklist evaluator for ${manuscript.journal_name}, an academic journal.
 

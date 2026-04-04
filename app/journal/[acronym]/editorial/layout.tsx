@@ -2,6 +2,8 @@ import Link from "next/link"
 import { notFound } from "next/navigation"
 import { sql } from "@/lib/graph"
 import { cn } from "@/lib/utils"
+import { requireRole } from "@/lib/auth-helpers"
+import { UserMenu } from "@/components/user-menu"
 import { JournalSelector } from "./journal-selector"
 import { RoleSelector } from "./role-selector"
 
@@ -33,6 +35,12 @@ export default async function EditorialLayout({
   const journal = journalRows[0]
   if (!journal) notFound()
 
+  const { user } = await requireRole(
+    journal.id,
+    ["assistant_editor", "editor", "editor_in_chief", "editorial_support", "journal_admin"],
+    `/journal/${journal.acronym}/editorial`
+  )
+
   const base = `/journal/${journal.acronym}/editorial`
 
   const navItems = [
@@ -49,7 +57,7 @@ export default async function EditorialLayout({
         {/* Top bar */}
         <header className="border-b border-zinc-200 dark:border-zinc-800 py-3 flex items-center gap-4">
           <Link
-            href={base}
+            href="/"
             className="font-semibold text-zinc-900 dark:text-zinc-100 tracking-tight text-sm"
           >
             Agentic Editorial System
@@ -70,14 +78,18 @@ export default async function EditorialLayout({
           >
             System Admin
           </Link>
+          <UserMenu name={user.name} email={user.email} />
         </header>
 
         <div className="flex gap-8 py-8">
           {/* Sidebar */}
           <nav className="w-48 shrink-0">
-            <p className="text-xs font-medium text-zinc-400 uppercase tracking-wider mb-3">
+            <Link
+              href={`/journal/${journal.acronym}`}
+              className="text-xs font-medium text-zinc-400 uppercase tracking-wider mb-3 hover:text-zinc-600 dark:hover:text-zinc-300 transition-colors block"
+            >
               {journal.acronym}
-            </p>
+            </Link>
             <ul className="space-y-0.5">
               {navItems.map((item) => (
                 <li key={item.href}>

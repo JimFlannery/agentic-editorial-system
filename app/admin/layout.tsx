@@ -1,5 +1,9 @@
 import Link from "next/link"
+import { headers } from "next/headers"
+import { redirect } from "next/navigation"
 import { cn } from "@/lib/utils"
+import { auth } from "@/lib/auth"
+import { UserMenu } from "@/components/user-menu"
 
 const navItems = [
   { href: "/admin/journals", label: "Journals" },
@@ -12,7 +16,11 @@ const navItems = [
   { href: "/admin/graph", label: "Graph View" },
 ]
 
-export default function AdminLayout({ children }: { children: React.ReactNode }) {
+export default async function AdminLayout({ children }: { children: React.ReactNode }) {
+  const session = await auth.api.getSession({ headers: await headers() })
+  if (!session) redirect("/login?next=/admin")
+  if (!session.user.system_admin) redirect("/unauthorized")
+
   return (
     <div className="min-h-screen bg-zinc-50 dark:bg-zinc-950">
       <div className="max-w-screen-xl mx-auto px-6">
@@ -26,18 +34,9 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
           </Link>
           <span className="text-zinc-300 dark:text-zinc-700">·</span>
           <span className="text-xs text-zinc-400">Admin</span>
-          <Link
-            href="/journal-admin"
-            className="ml-auto text-xs text-zinc-400 hover:text-zinc-600 dark:hover:text-zinc-300"
-          >
-            Journal Admin →
-          </Link>
-          <Link
-            href="/"
-            className="text-xs text-zinc-400 hover:text-zinc-600 dark:hover:text-zinc-300"
-          >
-            ← Back to app
-          </Link>
+          <div className="ml-auto">
+            <UserMenu name={session.user.name} email={session.user.email} />
+          </div>
         </header>
 
         <div className="flex gap-8 py-8">

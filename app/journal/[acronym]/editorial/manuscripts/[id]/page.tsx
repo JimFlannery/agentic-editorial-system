@@ -2,6 +2,9 @@ import { notFound } from "next/navigation"
 import Link from "next/link"
 import { sql } from "@/lib/graph"
 import ChecklistPanel from "./checklist"
+import ReviewerPanel from "./reviewer-panel"
+import DecisionPanel from "./decision-panel"
+import { getManuscriptReviewers, getSubmittedReviews } from "./actions"
 
 interface ManuscriptRow {
   id: string
@@ -76,9 +79,11 @@ export default async function ManuscriptDetailPage({
   params: Promise<{ acronym: string; id: string }>
 }) {
   const { acronym, id } = await params
-  const [manuscript, checklist] = await Promise.all([
+  const [manuscript, checklist, reviewers, submittedReviews] = await Promise.all([
     getManuscript(id),
     getLatestChecklist(id),
+    getManuscriptReviewers(id),
+    getSubmittedReviews(id),
   ])
 
   if (!manuscript) notFound()
@@ -153,6 +158,26 @@ export default async function ManuscriptDetailPage({
           />
         </div>
       </div>
+
+      {/* Reviewer invitation — shown once manuscript moves to under_review */}
+      {manuscript.status === "under_review" && (
+        <ReviewerPanel
+          acronym={acronym}
+          manuscriptId={manuscript.id}
+          journalId={manuscript.journal_id}
+          initialReviewers={reviewers}
+        />
+      )}
+
+      {/* Editor decision — shown when at least one review has been submitted */}
+      {submittedReviews.length > 0 && manuscript.status === "under_review" && (
+        <DecisionPanel
+          acronym={acronym}
+          manuscriptId={manuscript.id}
+          journalId={manuscript.journal_id}
+          reviews={submittedReviews}
+        />
+      )}
     </div>
   )
 }
