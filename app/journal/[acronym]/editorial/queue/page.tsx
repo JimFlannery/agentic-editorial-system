@@ -210,10 +210,10 @@ export default async function QueuePage({
     <div>
       <div className="flex items-baseline justify-between mb-6">
         <div>
-          <h1 className="text-xl font-semibold text-zinc-900 dark:text-zinc-100 mb-1">
+          <h1 className="text-xl font-semibold text-foreground mb-1">
             Checklist Queue
           </h1>
-          <p className="text-sm text-zinc-500 dark:text-zinc-400">
+          <p className="text-sm text-muted-foreground">
             {total === 0
               ? "No manuscripts awaiting checklist."
               : `${total} manuscript${total !== 1 ? "s" : ""} awaiting admin checklist.`}
@@ -222,8 +222,8 @@ export default async function QueuePage({
       </div>
 
       {total === 0 ? (
-        <div className="rounded-xl border border-dashed border-zinc-200 dark:border-zinc-800 px-8 py-12 text-center">
-          <p className="text-sm text-zinc-400">All caught up — no submissions in the queue.</p>
+        <div className="rounded-xl border border-dashed border-border px-8 py-12 text-center">
+          <p className="text-sm text-muted-foreground">All caught up — no submissions in the queue.</p>
         </div>
       ) : (
         <div className="space-y-3">
@@ -231,37 +231,37 @@ export default async function QueuePage({
             <Link
               key={ms.id}
               href={`/journal/${acronym}/editorial/manuscripts/${ms.id}`}
-              className="block rounded-xl border border-zinc-200 dark:border-zinc-800 bg-white dark:bg-zinc-900 px-5 py-4 hover:border-zinc-400 dark:hover:border-zinc-600 transition-colors"
+              className="block rounded-xl border border-border bg-card px-5 py-4 hover:border-border transition-colors"
             >
               <div className="flex items-start justify-between gap-4">
                 <div className="min-w-0 flex-1">
-                  <p className="font-medium text-zinc-900 dark:text-zinc-100 text-sm mb-1 truncate">
+                  <p className="font-medium text-foreground text-sm mb-1 truncate">
                     {ms.title}
                   </p>
-                  <p className="text-xs text-zinc-500 dark:text-zinc-400 mb-2">
+                  <p className="text-xs text-muted-foreground mb-2">
                     {ms.journal_name} · {ms.subject_area} · {ms.manuscript_type.replace(/_/g, " ")}
                   </p>
-                  <p className="text-xs text-zinc-400">
+                  <p className="text-xs text-muted-foreground">
                     {ms.author_name} &lt;{ms.author_email}&gt; · Submitted {formatDate(ms.submitted_at)}
                   </p>
                 </div>
                 <div className="shrink-0 flex flex-col items-end gap-2">
                   {ms.checklist_overall ? (
-                    <span className={`text-xs font-medium px-2 py-0.5 rounded ${statusColors[ms.checklist_overall] ?? "bg-zinc-100 text-zinc-700"}`}>
+                    <span className={`text-xs font-medium px-2 py-0.5 rounded ${statusColors[ms.checklist_overall] ?? "bg-muted text-foreground"}`}>
                       {ms.checklist_overall === "needs_human_review" ? "Needs review" : ms.checklist_overall}
                     </span>
                   ) : (
-                    <span className="text-xs font-medium px-2 py-0.5 rounded bg-zinc-100 text-zinc-500 dark:bg-zinc-800 dark:text-zinc-400">
+                    <span className="text-xs font-medium px-2 py-0.5 rounded bg-muted text-muted-foreground">
                       Not evaluated
                     </span>
                   )}
-                  <span className="text-xs text-zinc-400">Open →</span>
+                  <span className="text-xs text-muted-foreground">Open →</span>
                 </div>
               </div>
             </Link>
           ))}
           {totalPages > 1 && (
-            <div className="rounded-xl border border-zinc-200 dark:border-zinc-800 bg-white dark:bg-zinc-900 overflow-hidden">
+            <div className="rounded-xl border border-border bg-card overflow-hidden">
               <Pagination
                 page={page}
                 totalPages={totalPages}

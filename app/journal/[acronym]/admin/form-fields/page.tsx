@@ -43,10 +43,10 @@ export default async function FormFieldsPage({
     <div>
       <div className="flex items-center justify-between mb-6">
         <div>
-          <h1 className="text-xl font-semibold text-zinc-900 dark:text-zinc-100">
+          <h1 className="text-xl font-semibold text-foreground">
             Submission Form Fields
           </h1>
-          <p className="text-sm text-zinc-500 dark:text-zinc-400 mt-0.5">
+          <p className="text-sm text-muted-foreground mt-0.5">
             {activeCount} active field{activeCount !== 1 ? "s" : ""} · drag to reorder
           </p>
         </div>
@@ -54,21 +54,21 @@ export default async function FormFieldsPage({
       </div>
 
       {/* Fixed fields note */}
-      <div className="rounded-xl border border-zinc-200 dark:border-zinc-800 bg-zinc-50 dark:bg-zinc-900/50 px-4 py-3 mb-4">
-        <p className="text-xs text-zinc-500 dark:text-zinc-400">
-          <span className="font-medium text-zinc-700 dark:text-zinc-300">Always present:</span>{" "}
+      <div className="rounded-xl border border-border bg-muted/50 px-4 py-3 mb-4">
+        <p className="text-xs text-muted-foreground">
+          <span className="font-medium text-foreground">Always present:</span>{" "}
           Title, abstract, authors &amp; affiliations, manuscript type, and main file upload
           are hardcoded and not configurable here.
         </p>
       </div>
 
-      <div className="rounded-xl border border-zinc-200 dark:border-zinc-800 overflow-hidden">
+      <div className="rounded-xl border border-border overflow-hidden">
         {/* Header row */}
-        <div className="flex items-center gap-3 px-4 py-2 border-b border-zinc-200 dark:border-zinc-800 bg-zinc-50 dark:bg-zinc-900">
+        <div className="flex items-center gap-3 px-4 py-2 border-b border-border bg-muted">
           <div className="w-4" /> {/* grip placeholder */}
-          <span className="flex-1 text-xs font-medium text-zinc-500 dark:text-zinc-400">Label</span>
-          <span className="text-xs font-medium text-zinc-500 dark:text-zinc-400 w-20 text-right">Key</span>
-          <span className="text-xs font-medium text-zinc-500 dark:text-zinc-400 w-20 text-right">Type</span>
+          <span className="flex-1 text-xs font-medium text-muted-foreground">Label</span>
+          <span className="text-xs font-medium text-muted-foreground w-20 text-right">Key</span>
+          <span className="text-xs font-medium text-muted-foreground w-20 text-right">Type</span>
           <div className="w-24" /> {/* actions placeholder */}
         </div>
 

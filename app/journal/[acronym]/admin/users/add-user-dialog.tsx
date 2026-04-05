@@ -93,7 +93,7 @@ export function AddUserDialog({ journalId, person, sections = [] }: Props) {
   return (
     <Dialog open={open} onOpenChange={setOpen}>
       <DialogTrigger render={isEdit
-        ? <button className="text-xs text-zinc-400 hover:text-zinc-700 dark:hover:text-zinc-200 transition-colors" />
+        ? <button className="text-xs text-muted-foreground hover:text-foreground transition-colors" />
         : <Button />
       }>
         {isEdit ? "Edit" : "Add user"}
@@ -123,14 +123,14 @@ export function AddUserDialog({ journalId, person, sections = [] }: Props) {
             <Label>Roles</Label>
             <div className="grid grid-cols-2 gap-1.5">
               {ROLES.map((r) => (
-                <label key={r.value} className="flex items-center gap-2 text-sm text-zinc-700 dark:text-zinc-300 cursor-pointer">
+                <label key={r.value} className="flex items-center gap-2 text-sm text-foreground cursor-pointer">
                   <input
                     type="checkbox"
                     name="roles"
                     value={r.value}
                     checked={checkedRoles.has(r.value)}
                     onChange={(e) => toggleRole(r.value, e.target.checked)}
-                    className="rounded border-zinc-300"
+                    className="rounded border-input"
                   />
                   {r.label}
                 </label>
@@ -141,20 +141,20 @@ export function AddUserDialog({ journalId, person, sections = [] }: Props) {
           {/* Section assignments — only shown when sectionable roles are checked and sections exist */}
           {sections.length > 0 && sectionableChecked.length > 0 && (
             <div className="space-y-2">
-              <Label>Section assignments <span className="font-normal text-zinc-400">(optional)</span></Label>
-              <p className="text-xs text-zinc-400">
+              <Label>Section assignments <span className="font-normal text-muted-foreground">(optional)</span></Label>
+              <p className="text-xs text-muted-foreground">
                 Restrict this person to manuscripts in a specific section. Leave blank to see all manuscripts.
               </p>
               <div className="space-y-2">
                 {sectionableChecked.map((r) => (
                   <div key={r.value} className="flex items-center gap-3">
-                    <span className="text-sm text-zinc-600 dark:text-zinc-400 w-36 shrink-0">
+                    <span className="text-sm text-muted-foreground w-36 shrink-0">
                       {r.label}
                     </span>
                     <select
                       name={`section_${r.value}`}
                       defaultValue={person?.role_sections?.[r.value] ?? ""}
-                      className="flex-1 rounded-lg border border-zinc-200 dark:border-zinc-700 bg-white dark:bg-zinc-900 px-3 py-1.5 text-sm text-zinc-900 dark:text-zinc-100 focus:outline-none focus:ring-2 focus:ring-zinc-400 dark:focus:ring-zinc-600"
+                      className="flex-1 rounded-lg border border-input bg-card px-3 py-1.5 text-sm text-foreground focus:outline-none focus:ring-2 focus:ring-zinc-400 dark:focus:ring-zinc-600"
                     >
                       <option value="">All manuscripts</option>
                       {sections.map((s) => (

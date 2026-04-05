@@ -56,7 +56,7 @@ function SortableRow({ field, journalId }: { field: FormField; journalId: string
     <li
       ref={setNodeRef}
       style={style}
-      className={`flex items-center gap-3 px-4 py-3 bg-white dark:bg-zinc-900 ${
+      className={`flex items-center gap-3 px-4 py-3 bg-card ${
         isDragging ? "shadow-lg rounded-lg z-10" : ""
       }`}
     >
@@ -64,7 +64,7 @@ function SortableRow({ field, journalId }: { field: FormField; journalId: string
       <button
         {...attributes}
         {...listeners}
-        className="shrink-0 text-zinc-300 dark:text-zinc-600 hover:text-zinc-500 dark:hover:text-zinc-400 cursor-grab active:cursor-grabbing touch-none"
+        className="shrink-0 text-border hover:text-muted-foreground cursor-grab active:cursor-grabbing touch-none"
         aria-label="Drag to reorder"
       >
         <GripVertical className="size-4" />
@@ -72,7 +72,7 @@ function SortableRow({ field, journalId }: { field: FormField; journalId: string
 
       <div className="flex-1 min-w-0">
         <div className="flex items-center gap-2">
-          <span className={`text-sm font-medium ${field.active ? "text-zinc-900 dark:text-zinc-100" : "text-zinc-400 dark:text-zinc-500 line-through"}`}>
+          <span className={`text-sm font-medium ${field.active ? "text-foreground" : "text-muted-foreground line-through"}`}>
             {field.label}
           </span>
           {field.required && (
@@ -80,15 +80,15 @@ function SortableRow({ field, journalId }: { field: FormField; journalId: string
           )}
         </div>
         {field.description && (
-          <p className="text-xs text-zinc-400 dark:text-zinc-500 truncate mt-0.5">{field.description}</p>
+          <p className="text-xs text-muted-foreground truncate mt-0.5">{field.description}</p>
         )}
       </div>
 
-      <span className="shrink-0 text-xs text-zinc-400 dark:text-zinc-500 font-mono w-20 text-right">
+      <span className="shrink-0 text-xs text-muted-foreground font-mono w-20 text-right">
         {field.field_key}
       </span>
 
-      <span className="shrink-0 text-xs text-zinc-400 dark:text-zinc-500 w-20 text-right">
+      <span className="shrink-0 text-xs text-muted-foreground w-20 text-right">
         {TYPE_LABELS[field.field_type] ?? field.field_type}
       </span>
 
@@ -97,8 +97,8 @@ function SortableRow({ field, journalId }: { field: FormField; journalId: string
           onClick={() => toggleField(field.id, journalId, !field.active)}
           className={`text-xs transition-colors ${
             field.active
-              ? "text-zinc-400 hover:text-zinc-600 dark:hover:text-zinc-300"
-              : "text-zinc-300 dark:text-zinc-600 hover:text-zinc-500 dark:hover:text-zinc-400"
+              ? "text-muted-foreground hover:text-foreground"
+              : "text-border hover:text-muted-foreground"
           }`}
         >
           {field.active ? "Disable" : "Enable"}
@@ -130,7 +130,7 @@ export function FieldList({ fields, journalId }: { fields: FormField[]; journalI
 
   if (items.length === 0) {
     return (
-      <p className="text-sm text-zinc-400 dark:text-zinc-500 px-4 py-8 text-center">
+      <p className="text-sm text-muted-foreground px-4 py-8 text-center">
         No fields yet. Add your first field above.
       </p>
     )
@@ -139,7 +139,7 @@ export function FieldList({ fields, journalId }: { fields: FormField[]; journalI
   return (
     <DndContext sensors={sensors} collisionDetection={closestCenter} onDragEnd={handleDragEnd}>
       <SortableContext items={items.map((f) => f.id)} strategy={verticalListSortingStrategy}>
-        <ul className="divide-y divide-zinc-100 dark:divide-zinc-800">
+        <ul className="divide-y divide-border/50">
           {items.map((field) => (
             <SortableRow key={field.id} field={field} journalId={journalId} />
           ))}

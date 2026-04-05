@@ -59,19 +59,19 @@ export default function DecisionPanel({ acronym, manuscriptId, journalId, review
   return (
     <div className="mt-8 space-y-5">
       {/* Reviewer reports */}
-      <div className="rounded-xl border border-zinc-200 dark:border-zinc-800 bg-white dark:bg-zinc-900 overflow-hidden">
-        <div className="px-5 py-3 border-b border-zinc-100 dark:border-zinc-800">
-          <h2 className="text-sm font-semibold text-zinc-900 dark:text-zinc-100">
-            Reviewer Reports <span className="text-zinc-400 font-normal">({reviews.length})</span>
+      <div className="rounded-xl border border-border bg-card overflow-hidden">
+        <div className="px-5 py-3 border-b border-border">
+          <h2 className="text-sm font-semibold text-foreground">
+            Reviewer Reports <span className="text-muted-foreground font-normal">({reviews.length})</span>
           </h2>
         </div>
 
         {reviews.length === 0 ? (
           <div className="px-5 py-8 text-center">
-            <p className="text-sm text-zinc-400">No reviews submitted yet.</p>
+            <p className="text-sm text-muted-foreground">No reviews submitted yet.</p>
           </div>
         ) : (
-          <ul className="divide-y divide-zinc-100 dark:divide-zinc-800">
+          <ul className="divide-y divide-border">
             {reviews.map((r, i) => {
               const isOpen = expanded === i
               const recColour = RECOMMENDATION_COLOUR[r.recommendation] ?? "bg-zinc-100 text-zinc-500"
@@ -80,31 +80,31 @@ export default function DecisionPanel({ acronym, manuscriptId, journalId, review
                   <button
                     type="button"
                     onClick={() => setExpanded(isOpen ? null : i)}
-                    className="w-full text-left flex items-center justify-between gap-4 px-5 py-3 hover:bg-zinc-50 dark:hover:bg-zinc-800/50 transition-colors"
+                    className="w-full text-left flex items-center justify-between gap-4 px-5 py-3 hover:bg-muted/50 transition-colors"
                   >
                     <div className="min-w-0">
-                      <p className="text-sm font-medium text-zinc-900 dark:text-zinc-100">
+                      <p className="text-sm font-medium text-foreground">
                         Reviewer {i + 1}
-                        <span className="ml-1.5 text-xs text-zinc-400 font-normal">· {formatDate(r.occurred_at)}</span>
+                        <span className="ml-1.5 text-xs text-muted-foreground font-normal">· {formatDate(r.occurred_at)}</span>
                       </p>
                     </div>
                     <div className="flex items-center gap-2 shrink-0">
                       <span className={`text-xs font-medium px-2 py-0.5 rounded-full ${recColour}`}>
                         {RECOMMENDATION_LABEL[r.recommendation] ?? r.recommendation}
                       </span>
-                      <span className="text-zinc-400 text-xs">{isOpen ? "▲" : "▼"}</span>
+                      <span className="text-muted-foreground text-xs">{isOpen ? "▲" : "▼"}</span>
                     </div>
                   </button>
                   {isOpen && (
-                    <div className="px-5 pb-5 space-y-3 border-t border-zinc-100 dark:border-zinc-800">
+                    <div className="px-5 pb-5 space-y-3 border-t border-border">
                       <div className="pt-3">
-                        <p className="text-xs font-medium text-zinc-400 uppercase tracking-wider mb-1">Summary</p>
-                        <p className="text-sm text-zinc-700 dark:text-zinc-300 leading-relaxed whitespace-pre-wrap">{r.summary}</p>
+                        <p className="text-xs font-medium text-muted-foreground uppercase tracking-wider mb-1">Summary</p>
+                        <p className="text-sm text-foreground leading-relaxed whitespace-pre-wrap">{r.summary}</p>
                       </div>
                       {r.comments_author && (
                         <div>
-                          <p className="text-xs font-medium text-zinc-400 uppercase tracking-wider mb-1">Comments to Author</p>
-                          <p className="text-sm text-zinc-700 dark:text-zinc-300 leading-relaxed whitespace-pre-wrap">{r.comments_author}</p>
+                          <p className="text-xs font-medium text-muted-foreground uppercase tracking-wider mb-1">Comments to Author</p>
+                          <p className="text-sm text-foreground leading-relaxed whitespace-pre-wrap">{r.comments_author}</p>
                         </div>
                       )}
                     </div>
@@ -117,14 +117,14 @@ export default function DecisionPanel({ acronym, manuscriptId, journalId, review
       </div>
 
       {/* Decision form */}
-      <form onSubmit={handleSubmit} className="rounded-xl border border-zinc-200 dark:border-zinc-800 bg-white dark:bg-zinc-900 overflow-hidden">
-        <div className="px-5 py-3 border-b border-zinc-100 dark:border-zinc-800">
-          <h2 className="text-sm font-semibold text-zinc-900 dark:text-zinc-100">Send Decision</h2>
+      <form onSubmit={handleSubmit} className="rounded-xl border border-border bg-card overflow-hidden">
+        <div className="px-5 py-3 border-b border-border">
+          <h2 className="text-sm font-semibold text-foreground">Send Decision</h2>
         </div>
         <div className="px-5 py-5 space-y-5">
           {/* Decision radio */}
           <div>
-            <p className="text-xs font-medium text-zinc-500 dark:text-zinc-400 uppercase tracking-wider mb-2">
+            <p className="text-xs font-medium text-muted-foreground uppercase tracking-wider mb-2">
               Decision <span className="text-red-500">*</span>
             </p>
             <div className="grid grid-cols-2 gap-2">
@@ -138,7 +138,7 @@ export default function DecisionPanel({ acronym, manuscriptId, journalId, review
                     onChange={() => setDecision(d.value)}
                     className="accent-zinc-900 dark:accent-zinc-100"
                   />
-                  <span className="text-sm text-zinc-700 dark:text-zinc-300 group-hover:text-zinc-900 dark:group-hover:text-zinc-100">
+                  <span className="text-sm text-foreground group-hover:text-foreground">
                     {d.label}
                   </span>
                 </label>
@@ -148,7 +148,7 @@ export default function DecisionPanel({ acronym, manuscriptId, journalId, review
 
           {/* Decision letter */}
           <div>
-            <label className="block text-xs font-medium text-zinc-500 dark:text-zinc-400 uppercase tracking-wider mb-1.5">
+            <label className="block text-xs font-medium text-muted-foreground uppercase tracking-wider mb-1.5">
               Letter to Author <span className="text-red-500">*</span>
             </label>
             <textarea
@@ -156,7 +156,7 @@ export default function DecisionPanel({ acronym, manuscriptId, journalId, review
               onChange={(e) => setLetter(e.target.value)}
               rows={8}
               placeholder="Compose the decision letter to the corresponding author…"
-              className="w-full text-sm border border-zinc-200 dark:border-zinc-700 rounded-lg px-3 py-2 bg-white dark:bg-zinc-900 text-zinc-900 dark:text-zinc-100 placeholder-zinc-400 focus:outline-none focus:ring-2 focus:ring-zinc-400 dark:focus:ring-zinc-600 resize-y"
+              className="w-full text-sm border border-input rounded-lg px-3 py-2 bg-card text-foreground placeholder-zinc-400 focus:outline-none focus:ring-2 focus:ring-zinc-400 dark:focus:ring-zinc-600 resize-y"
             />
           </div>
 
@@ -166,7 +166,7 @@ export default function DecisionPanel({ acronym, manuscriptId, journalId, review
             <button
               type="submit"
               disabled={isPending}
-              className="px-5 py-2 rounded-lg bg-zinc-900 dark:bg-zinc-100 text-white dark:text-zinc-900 text-sm font-medium hover:bg-zinc-700 dark:hover:bg-zinc-300 disabled:opacity-50 transition-colors"
+              className="px-5 py-2 rounded-lg bg-foreground text-background text-sm font-medium hover:bg-zinc-700 dark:hover:bg-zinc-300 disabled:opacity-50 transition-colors"
             >
               {isPending ? "Sending…" : "Send Decision"}
             </button>

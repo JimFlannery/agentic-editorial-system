@@ -127,11 +127,11 @@ export default function ChecklistPanel({ manuscriptId, journalId, acronym, initi
   return (
     <div>
       <div className="flex items-center justify-between mb-4">
-        <h2 className="font-semibold text-zinc-900 dark:text-zinc-100 text-sm">Admin Checklist</h2>
+        <h2 className="font-semibold text-foreground text-sm">Admin Checklist</h2>
         <button
           onClick={runEvaluation}
           disabled={evaluating}
-          className="inline-flex items-center gap-1.5 text-xs font-medium px-3 py-1.5 rounded-lg bg-zinc-900 dark:bg-zinc-100 text-white dark:text-zinc-900 hover:bg-zinc-700 dark:hover:bg-zinc-300 disabled:opacity-50 transition-colors"
+          className="inline-flex items-center gap-1.5 text-xs font-medium px-3 py-1.5 rounded-lg bg-foreground text-background hover:bg-zinc-700 dark:hover:bg-zinc-300 disabled:opacity-50 transition-colors"
         >
           {evaluating ? (
             <>
@@ -151,27 +151,27 @@ export default function ChecklistPanel({ manuscriptId, journalId, acronym, initi
       )}
 
       {checklist?.summary && (
-        <div className="mb-4 rounded-lg bg-zinc-50 dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-800 px-4 py-3 text-sm text-zinc-600 dark:text-zinc-400">
-          <span className="font-medium text-zinc-700 dark:text-zinc-300">AI summary: </span>
+        <div className="mb-4 rounded-lg bg-background border border-border px-4 py-3 text-sm text-muted-foreground">
+          <span className="font-medium text-foreground">AI summary: </span>
           {checklist.summary}
         </div>
       )}
 
       {checklist && <div className="mb-4">{overallBanner(checklist.overall)}</div>}
 
-      <div className="rounded-xl border border-zinc-200 dark:border-zinc-800 overflow-hidden mb-6">
+      <div className="rounded-xl border border-border overflow-hidden mb-6">
         {items.map((item, idx) => (
           <div
             key={item.key}
-            className={`px-4 py-3 flex items-start gap-3 ${idx !== items.length - 1 ? "border-b border-zinc-100 dark:border-zinc-800" : ""}`}
+            className={`px-4 py-3 flex items-start gap-3 ${idx !== items.length - 1 ? "border-b border-border" : ""}`}
           >
             <div className="flex-1 min-w-0">
-              <p className="text-sm text-zinc-800 dark:text-zinc-200 mb-1">{item.label}</p>
+              <p className="text-sm text-foreground mb-1">{item.label}</p>
               {item.note && (
-                <p className="text-xs text-zinc-500 dark:text-zinc-400">{item.note}</p>
+                <p className="text-xs text-muted-foreground">{item.note}</p>
               )}
               {item.confidence !== undefined && item.status !== "pending" && (
-                <p className="text-xs text-zinc-400 mt-0.5">
+                <p className="text-xs text-muted-foreground mt-0.5">
                   AI confidence: {Math.round(item.confidence * 100)}%
                 </p>
               )}
@@ -180,7 +180,7 @@ export default function ChecklistPanel({ manuscriptId, journalId, acronym, initi
               {statusBadge(item.status)}
               {checklist && (
                 <select
-                  className="text-xs text-zinc-500 dark:text-zinc-400 bg-transparent border-none cursor-pointer hover:text-zinc-700 dark:hover:text-zinc-200"
+                  className="text-xs text-muted-foreground bg-transparent border-none cursor-pointer hover:text-foreground"
                   value=""
                   onChange={(e) => {
                     if (e.target.value) overrideItem(item.key, e.target.value as ChecklistItem["status"])
@@ -199,8 +199,8 @@ export default function ChecklistPanel({ manuscriptId, journalId, acronym, initi
         ))}
       </div>
 
-      <div className="border-t border-zinc-100 dark:border-zinc-800 pt-5">
-        <p className="text-xs font-medium text-zinc-500 dark:text-zinc-400 uppercase tracking-wider mb-3">
+      <div className="border-t border-border pt-5">
+        <p className="text-xs font-medium text-muted-foreground uppercase tracking-wider mb-3">
           Take action
         </p>
         <div className="flex flex-wrap gap-3">
@@ -232,19 +232,19 @@ export default function ChecklistPanel({ manuscriptId, journalId, acronym, initi
         </div>
 
         {!checklist && (
-          <p className="mt-2 text-xs text-zinc-400">Run AI Evaluation before passing to EIC.</p>
+          <p className="mt-2 text-xs text-muted-foreground">Run AI Evaluation before passing to EIC.</p>
         )}
       </div>
 
       {showUnsubmit && (
         <div className="fixed inset-0 bg-black/40 flex items-center justify-center z-50 p-4">
-          <div className="bg-white dark:bg-zinc-900 rounded-xl border border-zinc-200 dark:border-zinc-800 p-6 w-full max-w-md shadow-xl">
-            <h3 className="font-semibold text-zinc-900 dark:text-zinc-100 mb-2">Unsubmit Manuscript</h3>
-            <p className="text-sm text-zinc-500 dark:text-zinc-400 mb-4">
+          <div className="bg-card rounded-xl border border-border p-6 w-full max-w-md shadow-xl">
+            <h3 className="font-semibold text-foreground mb-2">Unsubmit Manuscript</h3>
+            <p className="text-sm text-muted-foreground mb-4">
               The manuscript will be returned to the author as a revision request. Provide a reason.
             </p>
             <textarea
-              className="w-full rounded-lg border border-zinc-200 dark:border-zinc-700 bg-zinc-50 dark:bg-zinc-800 text-sm text-zinc-900 dark:text-zinc-100 px-3 py-2 mb-4 resize-none"
+              className="w-full rounded-lg border border-input bg-background text-sm text-foreground px-3 py-2 mb-4 resize-none"
               rows={4}
               placeholder="Explain what the author needs to correct…"
               value={unsubmitReason}
@@ -253,7 +253,7 @@ export default function ChecklistPanel({ manuscriptId, journalId, acronym, initi
             <div className="flex gap-3 justify-end">
               <button
                 onClick={() => setShowUnsubmit(false)}
-                className="text-sm px-4 py-2 rounded-lg text-zinc-600 dark:text-zinc-400 hover:bg-zinc-100 dark:hover:bg-zinc-800 transition-colors"
+                className="text-sm px-4 py-2 rounded-lg text-muted-foreground hover:bg-muted transition-colors"
               >
                 Cancel
               </button>
@@ -273,14 +273,14 @@ export default function ChecklistPanel({ manuscriptId, journalId, acronym, initi
 
       {showReject && (
         <div className="fixed inset-0 bg-black/40 flex items-center justify-center z-50 p-4">
-          <div className="bg-white dark:bg-zinc-900 rounded-xl border border-zinc-200 dark:border-zinc-800 p-6 w-full max-w-md shadow-xl">
-            <h3 className="font-semibold text-zinc-900 dark:text-zinc-100 mb-2">Reject with Transfer</h3>
-            <p className="text-sm text-zinc-500 dark:text-zinc-400 mb-4">
+          <div className="bg-card rounded-xl border border-border p-6 w-full max-w-md shadow-xl">
+            <h3 className="font-semibold text-foreground mb-2">Reject with Transfer</h3>
+            <p className="text-sm text-muted-foreground mb-4">
               The manuscript will be rejected. Optionally suggest a transfer target journal.
             </p>
             <input
               type="text"
-              className="w-full rounded-lg border border-zinc-200 dark:border-zinc-700 bg-zinc-50 dark:bg-zinc-800 text-sm text-zinc-900 dark:text-zinc-100 px-3 py-2 mb-4"
+              className="w-full rounded-lg border border-input bg-background text-sm text-foreground px-3 py-2 mb-4"
               placeholder="Transfer target journal (optional)"
               value={transferTarget}
               onChange={(e) => setTransferTarget(e.target.value)}
@@ -288,7 +288,7 @@ export default function ChecklistPanel({ manuscriptId, journalId, acronym, initi
             <div className="flex gap-3 justify-end">
               <button
                 onClick={() => setShowReject(false)}
-                className="text-sm px-4 py-2 rounded-lg text-zinc-600 dark:text-zinc-400 hover:bg-zinc-100 dark:hover:bg-zinc-800 transition-colors"
+                className="text-sm px-4 py-2 rounded-lg text-muted-foreground hover:bg-muted transition-colors"
               >
                 Cancel
               </button>

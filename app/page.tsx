@@ -58,17 +58,17 @@ export default async function Home() {
   const journals = await getJournals()
 
   return (
-    <div className="min-h-screen bg-white dark:bg-zinc-950">
+    <div className="min-h-screen bg-background">
       {/* Nav */}
-      <header className="border-b border-zinc-200 dark:border-zinc-800">
+      <header className="border-b border-border">
         <div className="max-w-screen-xl mx-auto px-6 py-3 flex items-center gap-4">
-          <span className="font-semibold text-zinc-900 dark:text-zinc-100 tracking-tight text-sm">
+          <span className="font-semibold text-foreground tracking-tight text-sm">
             Agentic<em style={{ color: "#4f46e5", fontStyle: "italic" }}>ES</em>
           </span>
           <nav className="ml-auto flex items-center gap-1">
             <Link
               href="/admin"
-              className="text-sm text-zinc-500 dark:text-zinc-400 hover:text-zinc-900 dark:hover:text-zinc-100 px-3 py-1.5 rounded-md hover:bg-zinc-100 dark:hover:bg-zinc-800 transition-colors"
+              className="text-sm text-muted-foreground hover:text-foreground px-3 py-1.5 rounded-md hover:bg-muted transition-colors"
             >
               System Admin
             </Link>
@@ -81,49 +81,49 @@ export default async function Home() {
         {/* Hero */}
         <section className="py-20 max-w-2xl">
           <div className="flex items-baseline gap-4 mb-6">
-            <span className="text-5xl font-bold tracking-tight text-zinc-900 dark:text-zinc-100">
+            <span className="text-5xl font-bold tracking-tight text-foreground">
               Agentic<em style={{ color: "#4f46e5", fontStyle: "italic" }}>ES</em>
             </span>
-            <span className="text-lg text-zinc-500 dark:text-zinc-400">
+            <span className="text-lg text-muted-foreground">
               The Agentic Editorial System
             </span>
           </div>
-          <p className="text-xs font-medium text-zinc-400 uppercase tracking-widest mb-4">
+          <p className="text-xs font-medium text-muted-foreground uppercase tracking-widest mb-4">
             Open source · AGPLv3
           </p>
-          <h1 className="text-4xl font-semibold text-zinc-900 dark:text-zinc-100 leading-tight mb-5">
+          <h1 className="text-4xl font-semibold text-foreground leading-tight mb-5">
             Editorial workflow management,<br />powered by a property graph.
           </h1>
-          <p className="text-base text-zinc-500 dark:text-zinc-400 leading-relaxed mb-8 max-w-xl">
+          <p className="text-base text-muted-foreground leading-relaxed mb-8 max-w-xl">
             An open-source editorial management system for academic journals. Workflows are stored
             as a configurable graph — not hardcoded — and Claude agents automate reviewer selection,
             conflict detection, and deadline tracking.
           </p>
           <Link
             href="/admin"
-            className="rounded-lg border border-zinc-200 dark:border-zinc-700 text-zinc-700 dark:text-zinc-300 text-sm font-medium px-5 py-2.5 hover:bg-zinc-50 dark:hover:bg-zinc-900 transition-colors"
+            className="rounded-lg border border-input text-foreground text-sm font-medium px-5 py-2.5 hover:bg-muted/50 transition-colors"
           >
             System Admin
           </Link>
         </section>
 
-        <div className="border-t border-zinc-100 dark:border-zinc-900" />
+        <div className="border-t border-border/50" />
 
         {/* Journals */}
         <section className="py-16">
           <div className="flex items-baseline justify-between mb-8">
             <div>
-              <h2 className="text-xs font-medium text-zinc-400 uppercase tracking-widest mb-2">
+              <h2 className="text-xs font-medium text-muted-foreground uppercase tracking-widest mb-2">
                 Journals
               </h2>
-              <p className="text-sm text-zinc-500 dark:text-zinc-400">
+              <p className="text-sm text-muted-foreground">
                 Select a journal to enter its workspace.
               </p>
             </div>
             {journals.length > 0 && (
               <Link
                 href="/admin/journals"
-                className="text-xs text-zinc-400 hover:text-zinc-600 dark:hover:text-zinc-300 transition-colors"
+                className="text-xs text-muted-foreground hover:text-foreground transition-colors"
               >
                 Manage journals →
               </Link>
@@ -132,20 +132,20 @@ export default async function Home() {
           <JournalGrid journals={journals} />
         </section>
 
-        <div className="border-t border-zinc-100 dark:border-zinc-900" />
+        <div className="border-t border-border/50" />
 
         {/* Features */}
         <section className="py-16">
-          <h2 className="text-xs font-medium text-zinc-400 uppercase tracking-widest mb-10">
+          <h2 className="text-xs font-medium text-muted-foreground uppercase tracking-widest mb-10">
             Features
           </h2>
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-8">
             {features.map((f) => (
               <div key={f.title}>
-                <p className="font-medium text-zinc-900 dark:text-zinc-100 text-sm mb-1.5">
+                <p className="font-medium text-foreground text-sm mb-1.5">
                   {f.title}
                 </p>
-                <p className="text-sm text-zinc-500 dark:text-zinc-400 leading-relaxed">
+                <p className="text-sm text-muted-foreground leading-relaxed">
                   {f.description}
                 </p>
               </div>
@@ -153,13 +153,13 @@ export default async function Home() {
           </div>
         </section>
 
-        <div className="border-t border-zinc-100 dark:border-zinc-900" />
+        <div className="border-t border-border/50" />
 
-        <footer className="py-8 flex items-center justify-between text-xs text-zinc-400 dark:text-zinc-600">
+        <footer className="py-8 flex items-center justify-between text-xs text-muted-foreground">
           <span>Agentic<em style={{ color: "#4f46e5", fontStyle: "italic" }}>ES</em> — AGPLv3</span>
           <a
             href="https://github.com/anthropics/claude-code"
-            className="hover:text-zinc-600 dark:hover:text-zinc-400 transition-colors"
+            className="hover:text-foreground transition-colors"
           >
             Built with Claude Code
           </a>

@@ -113,30 +113,30 @@ function GraphEvents({
 
 function Inspector({ node, onClose }: { node: GraphNode; onClose: () => void }) {
   return (
-    <div className="w-72 shrink-0 rounded-xl border border-zinc-200 dark:border-zinc-800 bg-white dark:bg-zinc-900 p-4 overflow-auto">
+    <div className="w-72 shrink-0 rounded-xl border border-border bg-card p-4 overflow-auto">
       <div className="flex items-center justify-between mb-3">
-        <span className="text-xs font-medium uppercase tracking-wider text-zinc-400">
+        <span className="text-xs font-medium uppercase tracking-wider text-muted-foreground">
           {node.nodeType}
         </span>
         <button
           onClick={onClose}
-          className="text-zinc-400 hover:text-zinc-600 dark:hover:text-zinc-200 text-sm leading-none"
+          className="text-muted-foreground hover:text-foreground text-sm leading-none"
           aria-label="Close inspector"
         >
           ✕
         </button>
       </div>
-      <p className="font-medium text-zinc-900 dark:text-zinc-100 text-sm mb-4 break-words">
+      <p className="font-medium text-foreground text-sm mb-4 break-words">
         {node.label}
       </p>
       {Object.keys(node.properties).length > 0 ? (
         <dl className="space-y-2">
           {Object.entries(node.properties).map(([k, v]) => (
             <div key={k}>
-              <dt className="text-xs text-zinc-400 mb-0.5">{k}</dt>
-              <dd className="text-xs text-zinc-700 dark:text-zinc-300 break-all font-mono">
+              <dt className="text-xs text-muted-foreground mb-0.5">{k}</dt>
+              <dd className="text-xs text-foreground break-all font-mono">
                 {v === null || v === undefined ? (
-                  <span className="text-zinc-400 italic">null</span>
+                  <span className="text-muted-foreground italic">null</span>
                 ) : typeof v === "object" ? (
                   JSON.stringify(v)
                 ) : (
@@ -147,7 +147,7 @@ function Inspector({ node, onClose }: { node: GraphNode; onClose: () => void }) 
           ))}
         </dl>
       ) : (
-        <p className="text-xs text-zinc-400 italic">No properties</p>
+        <p className="text-xs text-muted-foreground italic">No properties</p>
       )}
     </div>
   )

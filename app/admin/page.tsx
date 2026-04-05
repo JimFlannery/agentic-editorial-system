@@ -46,10 +46,10 @@ const sections = [
 export default function AdminHomePage() {
   return (
     <div>
-      <h1 className="text-xl font-semibold text-zinc-900 dark:text-zinc-100 mb-1">
+      <h1 className="text-xl font-semibold text-foreground mb-1">
         Admin Console
       </h1>
-      <p className="text-sm text-zinc-500 dark:text-zinc-400 mb-8">
+      <p className="text-sm text-muted-foreground mb-8">
         Manage journals, users, workflows, and system configuration.
       </p>
       <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
@@ -57,10 +57,10 @@ export default function AdminHomePage() {
           <Link
             key={s.href}
             href={s.href}
-            className="block rounded-xl border border-zinc-200 dark:border-zinc-800 bg-white dark:bg-zinc-900 px-5 py-4 hover:border-zinc-400 dark:hover:border-zinc-600 transition-colors"
+            className="block rounded-xl border border-border bg-card px-5 py-4 hover:border-border transition-colors"
           >
-            <p className="font-medium text-zinc-900 dark:text-zinc-100 text-sm mb-1">{s.title}</p>
-            <p className="text-xs text-zinc-500 dark:text-zinc-400 leading-relaxed">{s.description}</p>
+            <p className="font-medium text-foreground text-sm mb-1">{s.title}</p>
+            <p className="text-xs text-muted-foreground leading-relaxed">{s.description}</p>
           </Link>
         ))}
       </div>

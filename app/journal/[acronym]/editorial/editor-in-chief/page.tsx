@@ -168,12 +168,12 @@ export default async function EditorInChiefPage({
 
   return (
     <div>
-      <h1 className="text-xl font-semibold text-zinc-900 dark:text-zinc-100 mb-1">
+      <h1 className="text-xl font-semibold text-foreground mb-1">
         Editor-in-Chief
       </h1>
-      <p className="text-sm text-zinc-500 dark:text-zinc-400 mb-8">
+      <p className="text-sm text-muted-foreground mb-8">
         Editorial oversight, escalations, and final decisions for{" "}
-        <span className="font-medium text-zinc-700 dark:text-zinc-300">{acronym}</span>.
+        <span className="font-medium text-foreground">{acronym}</span>.
       </p>
 
       {/* Stats */}
@@ -181,10 +181,10 @@ export default async function EditorInChiefPage({
         {stats.map((stat) => (
           <div
             key={stat.label}
-            className="rounded-xl border border-zinc-200 dark:border-zinc-800 bg-white dark:bg-zinc-900 px-5 py-4"
+            className="rounded-xl border border-border bg-card px-5 py-4"
           >
             <div className="flex items-baseline gap-2 mb-1">
-              <span className={`text-2xl font-bold ${stat.urgent ? "text-amber-600 dark:text-amber-400" : "text-zinc-900 dark:text-zinc-100"}`}>
+              <span className={`text-2xl font-bold ${stat.urgent ? "text-amber-600 dark:text-amber-400" : "text-foreground"}`}>
                 {stat.count}
               </span>
               {stat.urgent && (
@@ -193,51 +193,51 @@ export default async function EditorInChiefPage({
                 </span>
               )}
             </div>
-            <p className="text-sm font-medium text-zinc-900 dark:text-zinc-100">{stat.label}</p>
+            <p className="text-sm font-medium text-foreground">{stat.label}</p>
           </div>
         ))}
       </div>
 
       {/* Monthly at-a-glance */}
       <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 mb-8">
-        <div className="rounded-xl border border-zinc-200 dark:border-zinc-800 bg-white dark:bg-zinc-900 px-5 py-4">
-          <p className="text-xs text-zinc-400 uppercase tracking-wider mb-1">Submissions this month</p>
-          <p className="text-3xl font-bold text-zinc-900 dark:text-zinc-100">{metrics.submissions_this_month}</p>
+        <div className="rounded-xl border border-border bg-card px-5 py-4">
+          <p className="text-xs text-muted-foreground uppercase tracking-wider mb-1">Submissions this month</p>
+          <p className="text-3xl font-bold text-foreground">{metrics.submissions_this_month}</p>
         </div>
-        <div className="rounded-xl border border-zinc-200 dark:border-zinc-800 bg-white dark:bg-zinc-900 px-5 py-4">
-          <p className="text-xs text-zinc-400 uppercase tracking-wider mb-1">Avg. days to decision</p>
-          <p className="text-3xl font-bold text-zinc-900 dark:text-zinc-100">
+        <div className="rounded-xl border border-border bg-card px-5 py-4">
+          <p className="text-xs text-muted-foreground uppercase tracking-wider mb-1">Avg. days to decision</p>
+          <p className="text-3xl font-bold text-foreground">
             {metrics.avg_days_to_decision ?? "—"}
           </p>
-          <p className="text-xs text-zinc-400 mt-1">Calculated once decisions are recorded</p>
+          <p className="text-xs text-muted-foreground mt-1">Calculated once decisions are recorded</p>
         </div>
       </div>
 
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
         {/* Stalled manuscripts */}
-        <div className="lg:col-span-2 rounded-xl border border-zinc-200 dark:border-zinc-800 bg-white dark:bg-zinc-900 overflow-hidden">
-          <div className="px-5 py-3 border-b border-zinc-100 dark:border-zinc-800">
-            <h2 className="text-sm font-medium text-zinc-900 dark:text-zinc-100">
+        <div className="lg:col-span-2 rounded-xl border border-border bg-card overflow-hidden">
+          <div className="px-5 py-3 border-b border-border/50">
+            <h2 className="text-sm font-medium text-foreground">
               Stalled Manuscripts
-              <span className="ml-2 text-xs font-normal text-zinc-400">no activity in 14+ days</span>
+              <span className="ml-2 text-xs font-normal text-muted-foreground">no activity in 14+ days</span>
             </h2>
           </div>
 
           {stalled.length === 0 ? (
             <div className="px-5 py-10 text-center">
-              <p className="text-sm text-zinc-400">No stalled manuscripts — all submissions have recent activity.</p>
+              <p className="text-sm text-muted-foreground">No stalled manuscripts — all submissions have recent activity.</p>
             </div>
           ) : (
-            <ul className="divide-y divide-zinc-100 dark:divide-zinc-800">
+            <ul className="divide-y divide-border/50">
               {stalled.map((ms) => (
                 <li key={ms.id}>
                   <Link
                     href={`/journal/${acronym}/editorial/manuscripts/${ms.id}`}
-                    className="flex items-center justify-between gap-4 px-5 py-3 hover:bg-zinc-50 dark:hover:bg-zinc-800/50 transition-colors"
+                    className="flex items-center justify-between gap-4 px-5 py-3 hover:bg-muted/50 transition-colors"
                   >
                     <div className="min-w-0">
-                      <p className="text-sm text-zinc-900 dark:text-zinc-100 truncate">{ms.title}</p>
-                      <p className="text-xs text-zinc-400 mt-0.5">
+                      <p className="text-sm text-foreground truncate">{ms.title}</p>
+                      <p className="text-xs text-muted-foreground mt-0.5">
                         {ms.author_name} · {statusLabel[ms.status] ?? ms.status.replace(/_/g, " ")}
                       </p>
                     </div>
@@ -252,25 +252,25 @@ export default async function EditorInChiefPage({
         </div>
 
         {/* Recent decisions */}
-        <div className="rounded-xl border border-zinc-200 dark:border-zinc-800 bg-white dark:bg-zinc-900 overflow-hidden">
-          <div className="px-5 py-3 border-b border-zinc-100 dark:border-zinc-800">
-            <h2 className="text-sm font-medium text-zinc-900 dark:text-zinc-100">Recent Decisions</h2>
+        <div className="rounded-xl border border-border bg-card overflow-hidden">
+          <div className="px-5 py-3 border-b border-border/50">
+            <h2 className="text-sm font-medium text-foreground">Recent Decisions</h2>
           </div>
 
           {decisions.length === 0 ? (
             <div className="px-5 py-8 text-center">
-              <p className="text-sm text-zinc-400">No decisions sent yet.</p>
+              <p className="text-sm text-muted-foreground">No decisions sent yet.</p>
             </div>
           ) : (
-            <ul className="divide-y divide-zinc-100 dark:divide-zinc-800">
+            <ul className="divide-y divide-border/50">
               {decisions.map((d) => (
                 <li key={`${d.manuscript_id}-${d.occurred_at}`}>
                   <Link
                     href={`/journal/${acronym}/editorial/manuscripts/${d.manuscript_id}`}
-                    className="block px-5 py-3 hover:bg-zinc-50 dark:hover:bg-zinc-800/50 transition-colors"
+                    className="block px-5 py-3 hover:bg-muted/50 transition-colors"
                   >
-                    <p className="text-sm text-zinc-900 dark:text-zinc-100 truncate">{d.title}</p>
-                    <p className="text-xs text-zinc-400 mt-0.5">
+                    <p className="text-sm text-foreground truncate">{d.title}</p>
+                    <p className="text-xs text-muted-foreground mt-0.5">
                       {d.decision ?? "decision sent"} · {formatDate(d.occurred_at)}
                     </p>
                   </Link>

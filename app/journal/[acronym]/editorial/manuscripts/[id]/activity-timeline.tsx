@@ -78,12 +78,12 @@ export function ActivityTimeline({ events }: { events: TimelineEvent[] }) {
   if (events.length === 0) return null
 
   return (
-    <div className="rounded-xl border border-zinc-200 dark:border-zinc-800 bg-white dark:bg-zinc-900 overflow-hidden mt-8">
-      <div className="px-5 py-3 border-b border-zinc-100 dark:border-zinc-800">
-        <h2 className="text-sm font-medium text-zinc-900 dark:text-zinc-100">Activity</h2>
+    <div className="rounded-xl border border-border bg-card overflow-hidden mt-8">
+      <div className="px-5 py-3 border-b border-border">
+        <h2 className="text-sm font-medium text-foreground">Activity</h2>
       </div>
       <div className="px-5 py-5">
-        <ol className="relative border-l border-zinc-200 dark:border-zinc-700 ml-2 space-y-5">
+        <ol className="relative border-l border-border ml-2 space-y-5">
           {events.map((ev, i) => {
             const meta = EVENT_META[ev.event_type]
             const label = meta
@@ -92,9 +92,9 @@ export function ActivityTimeline({ events }: { events: TimelineEvent[] }) {
             const dot = meta ? meta.dot(ev) : "bg-zinc-400"
             return (
               <li key={i} className="ml-5">
-                <span className={`absolute -left-[7px] flex h-3.5 w-3.5 rounded-full ring-2 ring-white dark:ring-zinc-900 ${dot}`} />
-                <p className="text-sm text-zinc-800 dark:text-zinc-200 leading-snug">{label}</p>
-                <time className="text-xs text-zinc-400">{formatDateTime(ev.occurred_at)}</time>
+                <span className={`absolute -left-[7px] flex h-3.5 w-3.5 rounded-full ring-2 ring-background ${dot}`} />
+                <p className="text-sm text-foreground leading-snug">{label}</p>
+                <time className="text-xs text-muted-foreground">{formatDateTime(ev.occurred_at)}</time>
               </li>
             )
           })}

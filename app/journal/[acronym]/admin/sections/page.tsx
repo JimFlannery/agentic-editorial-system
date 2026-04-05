@@ -45,8 +45,8 @@ export default async function SectionsPage({
     <div>
       <div className="flex items-center justify-between mb-6">
         <div>
-          <h1 className="text-xl font-semibold text-zinc-900 dark:text-zinc-100">Sections</h1>
-          <p className="text-sm text-zinc-500 dark:text-zinc-400 mt-0.5">
+          <h1 className="text-xl font-semibold text-foreground">Sections</h1>
+          <p className="text-sm text-muted-foreground mt-0.5">
             {sections.length} section{sections.length !== 1 ? "s" : ""}
             {" — "}scope editorial staff to specific subject areas
           </p>
@@ -54,9 +54,9 @@ export default async function SectionsPage({
         <SectionDialog journalId={journal.id} />
       </div>
 
-      <div className="rounded-xl border border-zinc-200 dark:border-zinc-800 bg-zinc-50 dark:bg-zinc-900/50 px-4 py-3 mb-4">
-        <p className="text-xs text-zinc-500 dark:text-zinc-400">
-          <span className="font-medium text-zinc-700 dark:text-zinc-300">How sections work:</span>{" "}
+      <div className="rounded-xl border border-border bg-muted/50 px-4 py-3 mb-4">
+        <p className="text-xs text-muted-foreground">
+          <span className="font-medium text-foreground">How sections work:</span>{" "}
           Assign a section to an assistant editor or editor in the Users panel. They will only see
           manuscripts whose subject area matches that section&apos;s tags. Staff without a section
           assignment see all manuscripts.
@@ -64,22 +64,22 @@ export default async function SectionsPage({
       </div>
 
       {sections.length === 0 ? (
-        <div className="rounded-xl border border-dashed border-zinc-200 dark:border-zinc-800 px-8 py-12 text-center">
-          <p className="text-sm text-zinc-400 mb-4">No sections yet.</p>
-          <p className="text-xs text-zinc-400 max-w-sm mx-auto">
+        <div className="rounded-xl border border-dashed border-border px-8 py-12 text-center">
+          <p className="text-sm text-muted-foreground mb-4">No sections yet.</p>
+          <p className="text-xs text-muted-foreground max-w-sm mx-auto">
             Add sections to divide this journal by subject area.
             Journals without sections show all manuscripts to all editorial staff.
           </p>
         </div>
       ) : (
-        <div className="rounded-xl border border-zinc-200 dark:border-zinc-800 overflow-hidden">
+        <div className="rounded-xl border border-border overflow-hidden">
           <table className="w-full text-sm">
             <thead>
-              <tr className="border-b border-zinc-200 dark:border-zinc-800 bg-zinc-50 dark:bg-zinc-900">
-                <th className="text-left px-4 py-3 font-medium text-zinc-500 dark:text-zinc-400">Section</th>
-                <th className="text-left px-4 py-3 font-medium text-zinc-500 dark:text-zinc-400">Subject tags</th>
-                <th className="text-left px-4 py-3 font-medium text-zinc-500 dark:text-zinc-400">Staff</th>
-                <th className="text-left px-4 py-3 font-medium text-zinc-500 dark:text-zinc-400">Status</th>
+              <tr className="border-b border-border bg-muted">
+                <th className="text-left px-4 py-3 font-medium text-muted-foreground">Section</th>
+                <th className="text-left px-4 py-3 font-medium text-muted-foreground">Subject tags</th>
+                <th className="text-left px-4 py-3 font-medium text-muted-foreground">Staff</th>
+                <th className="text-left px-4 py-3 font-medium text-muted-foreground">Status</th>
                 <th className="px-4 py-3" />
               </tr>
             </thead>
@@ -87,9 +87,9 @@ export default async function SectionsPage({
               {sections.map((s, i) => (
                 <tr
                   key={s.id}
-                  className={i < sections.length - 1 ? "border-b border-zinc-100 dark:border-zinc-800" : ""}
+                  className={i < sections.length - 1 ? "border-b border-border/50" : ""}
                 >
-                  <td className="px-4 py-3 font-medium text-zinc-900 dark:text-zinc-100">
+                  <td className="px-4 py-3 font-medium text-foreground">
                     {s.name}
                   </td>
                   <td className="px-4 py-3">
@@ -98,26 +98,26 @@ export default async function SectionsPage({
                         {s.subject_tags.map((tag) => (
                           <span
                             key={tag}
-                            className="inline-block rounded bg-zinc-100 dark:bg-zinc-800 text-zinc-600 dark:text-zinc-400 text-xs px-1.5 py-0.5 font-mono"
+                            className="inline-block rounded bg-muted text-muted-foreground text-xs px-1.5 py-0.5 font-mono"
                           >
                             {tag}
                           </span>
                         ))}
                       </div>
                     ) : (
-                      <span className="text-zinc-300 dark:text-zinc-600 text-xs">No tags — manual assignment only</span>
+                      <span className="text-border text-xs">No tags — manual assignment only</span>
                     )}
                   </td>
-                  <td className="px-4 py-3 text-zinc-500 dark:text-zinc-400">
+                  <td className="px-4 py-3 text-muted-foreground">
                     {s.member_count === 0
-                      ? <span className="text-zinc-300 dark:text-zinc-600">—</span>
+                      ? <span className="text-border">—</span>
                       : `${s.member_count} assigned`}
                   </td>
                   <td className="px-4 py-3">
                     <span className={`inline-block rounded-full text-xs px-2 py-0.5 ${
                       s.active
                         ? "bg-green-100 text-green-700 dark:bg-green-900/30 dark:text-green-300"
-                        : "bg-zinc-100 text-zinc-500 dark:bg-zinc-800 dark:text-zinc-400"
+                        : "bg-muted text-muted-foreground"
                     }`}>
                       {s.active ? "Active" : "Inactive"}
                     </span>
@@ -128,7 +128,7 @@ export default async function SectionsPage({
                       <form action={toggleSection.bind(null, journal.id, s.id, !s.active)}>
                         <button
                           type="submit"
-                          className="text-xs text-zinc-400 hover:text-zinc-700 dark:hover:text-zinc-200 transition-colors"
+                          className="text-xs text-muted-foreground hover:text-foreground transition-colors"
                         >
                           {s.active ? "Deactivate" : "Activate"}
                         </button>

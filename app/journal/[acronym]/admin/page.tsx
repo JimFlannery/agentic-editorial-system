@@ -108,24 +108,24 @@ export default async function JournalAdminDashboardPage({
 
   return (
     <div>
-      <h1 className="text-xl font-semibold text-zinc-900 dark:text-zinc-100 mb-1">
+      <h1 className="text-xl font-semibold text-foreground mb-1">
         Journal Admin
       </h1>
-      <p className="text-sm text-zinc-500 dark:text-zinc-400 mb-8">
+      <p className="text-sm text-muted-foreground mb-8">
         Configure and manage your journal — workflows, team, templates, and submission types.
       </p>
 
       {/* Queue at-a-glance */}
-      <h2 className="text-sm font-medium text-zinc-900 dark:text-zinc-100 mb-3">Queue</h2>
+      <h2 className="text-sm font-medium text-foreground mb-3">Queue</h2>
       <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 mb-10">
         {stats.map((stat) => (
           <Link
             key={stat.label}
             href={stat.href}
-            className="block rounded-xl border border-zinc-200 dark:border-zinc-800 bg-white dark:bg-zinc-900 px-5 py-4 hover:border-zinc-400 dark:hover:border-zinc-600 transition-colors"
+            className="block rounded-xl border border-border bg-card px-5 py-4 hover:border-border transition-colors"
           >
             <div className="flex items-baseline gap-2 mb-1">
-              <span className={`text-2xl font-bold ${stat.urgent ? "text-amber-600 dark:text-amber-400" : "text-zinc-900 dark:text-zinc-100"}`}>
+              <span className={`text-2xl font-bold ${stat.urgent ? "text-amber-600 dark:text-amber-400" : "text-foreground"}`}>
                 {stat.count}
               </span>
               {stat.urgent && (
@@ -134,23 +134,23 @@ export default async function JournalAdminDashboardPage({
                 </span>
               )}
             </div>
-            <p className="font-medium text-zinc-900 dark:text-zinc-100 text-sm mb-1">{stat.label}</p>
-            <p className="text-xs text-zinc-500 dark:text-zinc-400 leading-relaxed">{stat.description}</p>
+            <p className="font-medium text-foreground text-sm mb-1">{stat.label}</p>
+            <p className="text-xs text-muted-foreground leading-relaxed">{stat.description}</p>
           </Link>
         ))}
       </div>
 
       {/* Configuration sections */}
-      <h2 className="text-sm font-medium text-zinc-900 dark:text-zinc-100 mb-3">Configuration</h2>
+      <h2 className="text-sm font-medium text-foreground mb-3">Configuration</h2>
       <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
         {sections.map((s) => (
           <Link
             key={s.href}
             href={s.href}
-            className="block rounded-xl border border-zinc-200 dark:border-zinc-800 bg-white dark:bg-zinc-900 px-5 py-4 hover:border-zinc-400 dark:hover:border-zinc-600 transition-colors"
+            className="block rounded-xl border border-border bg-card px-5 py-4 hover:border-border transition-colors"
           >
-            <p className="font-medium text-zinc-900 dark:text-zinc-100 text-sm mb-1">{s.title}</p>
-            <p className="text-xs text-zinc-500 dark:text-zinc-400 leading-relaxed">{s.description}</p>
+            <p className="font-medium text-foreground text-sm mb-1">{s.title}</p>
+            <p className="text-xs text-muted-foreground leading-relaxed">{s.description}</p>
           </Link>
         ))}
       </div>

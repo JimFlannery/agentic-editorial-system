@@ -70,7 +70,7 @@ export function AddUserDialog({ journals, person }: Props) {
   return (
     <Dialog open={open} onOpenChange={setOpen}>
       <DialogTrigger render={isEdit
-        ? <button className="text-xs text-zinc-400 hover:text-zinc-700 dark:hover:text-zinc-200 transition-colors" />
+        ? <button className="text-xs text-muted-foreground hover:text-foreground transition-colors" />
         : <Button />
       }>
         {isEdit ? "Edit" : "Add user"}
@@ -87,7 +87,7 @@ export function AddUserDialog({ journals, person }: Props) {
                 id="journal_id"
                 name="journal_id"
                 required
-                className="w-full rounded-md border border-zinc-200 dark:border-zinc-800 bg-white dark:bg-zinc-950 px-3 py-2 text-sm text-zinc-900 dark:text-zinc-100 focus:outline-none focus:ring-2 focus:ring-zinc-500"
+                className="w-full rounded-md border border-border bg-background px-3 py-2 text-sm text-foreground focus:outline-none focus:ring-2 focus:ring-zinc-500"
               >
                 <option value="">Select a journal…</option>
                 {journals.map((j) => (
@@ -112,13 +112,13 @@ export function AddUserDialog({ journals, person }: Props) {
             <Label>Roles</Label>
             <div className="grid grid-cols-2 gap-1.5">
               {ROLES.map((r) => (
-                <label key={r.value} className="flex items-center gap-2 text-sm text-zinc-700 dark:text-zinc-300 cursor-pointer">
+                <label key={r.value} className="flex items-center gap-2 text-sm text-foreground cursor-pointer">
                   <input
                     type="checkbox"
                     name="roles"
                     value={r.value}
                     defaultChecked={currentRoles.has(r.value)}
-                    className="rounded border-zinc-300"
+                    className="rounded border-input"
                   />
                   {r.label}
                 </label>

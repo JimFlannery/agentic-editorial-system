@@ -43,7 +43,7 @@ export default function ReviseForm({ acronym, manuscriptId, journalId }: Props) 
     <form
       ref={formRef}
       onSubmit={handleSubmit}
-      className="rounded-xl border border-amber-200 dark:border-amber-800 bg-white dark:bg-zinc-900 overflow-hidden"
+      className="rounded-xl border border-amber-200 dark:border-amber-800 bg-card overflow-hidden"
     >
       <div className="px-5 py-3 border-b border-amber-100 dark:border-amber-900 bg-amber-50 dark:bg-amber-950/40">
         <h2 className="text-sm font-semibold text-amber-900 dark:text-amber-200">Submit Revision</h2>
@@ -57,7 +57,7 @@ export default function ReviseForm({ acronym, manuscriptId, journalId }: Props) 
         <div>
           <label
             htmlFor="response_letter"
-            className="block text-xs font-medium text-zinc-500 dark:text-zinc-400 uppercase tracking-wider mb-1.5"
+            className="block text-xs font-medium text-muted-foreground uppercase tracking-wider mb-1.5"
           >
             Response Letter <span className="text-red-500">*</span>
           </label>
@@ -66,20 +66,20 @@ export default function ReviseForm({ acronym, manuscriptId, journalId }: Props) 
             name="response_letter"
             rows={8}
             placeholder="Describe the changes you made and how you addressed each reviewer comment…"
-            className="w-full text-sm border border-zinc-200 dark:border-zinc-700 rounded-lg px-3 py-2 bg-white dark:bg-zinc-900 text-zinc-900 dark:text-zinc-100 placeholder-zinc-400 focus:outline-none focus:ring-2 focus:ring-zinc-400 dark:focus:ring-zinc-600 resize-y"
+            className="w-full text-sm border border-input rounded-lg px-3 py-2 bg-card text-foreground placeholder-zinc-400 focus:outline-none focus:ring-2 focus:ring-zinc-400 dark:focus:ring-zinc-600 resize-y"
           />
         </div>
 
         {/* File upload */}
         <div>
-          <p className="text-xs font-medium text-zinc-500 dark:text-zinc-400 uppercase tracking-wider mb-1.5">
+          <p className="text-xs font-medium text-muted-foreground uppercase tracking-wider mb-1.5">
             Revised Manuscript <span className="text-red-500">*</span>
           </p>
           <label className="flex items-center gap-3 cursor-pointer group">
-            <span className="inline-flex items-center px-3 py-1.5 rounded-lg border border-zinc-200 dark:border-zinc-700 bg-zinc-50 dark:bg-zinc-800 text-xs font-medium text-zinc-700 dark:text-zinc-300 group-hover:bg-zinc-100 dark:group-hover:bg-zinc-700 transition-colors">
+            <span className="inline-flex items-center px-3 py-1.5 rounded-lg border border-input bg-muted text-xs font-medium text-foreground group-hover:bg-muted/50 transition-colors">
               Choose file
             </span>
-            <span className="text-xs text-zinc-400 truncate">
+            <span className="text-xs text-muted-foreground truncate">
               {fileName ?? "No file chosen"}
             </span>
             <input
@@ -90,7 +90,7 @@ export default function ReviseForm({ acronym, manuscriptId, journalId }: Props) 
               className="sr-only"
             />
           </label>
-          <p className="text-xs text-zinc-400 mt-1">PDF, Word, LaTeX, or ZIP</p>
+          <p className="text-xs text-muted-foreground mt-1">PDF, Word, LaTeX, or ZIP</p>
         </div>
 
         {error && <p className="text-sm text-red-500 dark:text-red-400">{error}</p>}
@@ -99,7 +99,7 @@ export default function ReviseForm({ acronym, manuscriptId, journalId }: Props) 
           <button
             type="submit"
             disabled={isPending}
-            className="px-5 py-2 rounded-lg bg-zinc-900 dark:bg-zinc-100 text-white dark:text-zinc-900 text-sm font-medium hover:bg-zinc-700 dark:hover:bg-zinc-300 disabled:opacity-50 transition-colors"
+            className="px-5 py-2 rounded-lg bg-foreground text-background text-sm font-medium hover:bg-zinc-700 dark:hover:bg-zinc-300 disabled:opacity-50 transition-colors"
           >
             {isPending ? "Submitting…" : "Submit Revision"}
           </button>

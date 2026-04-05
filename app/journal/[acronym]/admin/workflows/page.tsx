@@ -57,7 +57,7 @@ function outcomeColor(rel: string): string {
   if (rel === "ON_FAIL") return "text-red-500 dark:text-red-400"
   if (rel === "ON_ESCALATE") return "text-orange-500 dark:text-orange-400"
   if (rel === "ON_TIMEOUT") return "text-amber-500 dark:text-amber-400"
-  return "text-zinc-400"
+  return "text-muted-foreground"
 }
 
 export default async function WorkflowsPage({
@@ -161,25 +161,25 @@ export default async function WorkflowsPage({
     <div>
       <div className="flex items-center justify-between mb-6">
         <div>
-          <h1 className="text-xl font-semibold text-zinc-900 dark:text-zinc-100">Workflows</h1>
-          <p className="text-sm text-zinc-500 dark:text-zinc-400 mt-0.5">
+          <h1 className="text-xl font-semibold text-foreground">Workflows</h1>
+          <p className="text-sm text-muted-foreground mt-0.5">
             {workflows.length} workflow definition{workflows.length !== 1 ? "s" : ""}
           </p>
         </div>
         <a
           href={`/journal/${acronym}/admin/workflow`}
-          className="rounded-lg bg-zinc-900 dark:bg-zinc-100 text-white dark:text-zinc-900 text-sm font-medium px-4 py-2 hover:opacity-90 transition-opacity"
+          className="rounded-lg bg-foreground text-background text-sm font-medium px-4 py-2 hover:opacity-90 transition-opacity"
         >
           Configure with AI
         </a>
       </div>
 
       {workflows.length === 0 ? (
-        <div className="rounded-xl border border-zinc-200 dark:border-zinc-800 px-6 py-10 text-center">
-          <p className="text-sm text-zinc-500 dark:text-zinc-400 mb-3">No workflows defined yet.</p>
+        <div className="rounded-xl border border-border px-6 py-10 text-center">
+          <p className="text-sm text-muted-foreground mb-3">No workflows defined yet.</p>
           <a
             href={`/journal/${acronym}/admin/workflow`}
-            className="text-sm font-medium text-zinc-900 dark:text-zinc-100 underline underline-offset-2"
+            className="text-sm font-medium text-foreground underline underline-offset-2"
           >
             Configure your first workflow →
           </a>
@@ -189,24 +189,24 @@ export default async function WorkflowsPage({
           {workflows.map((w) => (
             <div
               key={w.id}
-              className="rounded-xl border border-zinc-200 dark:border-zinc-800 bg-white dark:bg-zinc-900 overflow-hidden"
+              className="rounded-xl border border-border bg-card overflow-hidden"
             >
               {/* Header */}
-              <div className="px-5 py-4 border-b border-zinc-100 dark:border-zinc-800 flex items-start justify-between gap-4">
+              <div className="px-5 py-4 border-b border-border/50 flex items-start justify-between gap-4">
                 <div>
-                  <p className="font-medium text-zinc-900 dark:text-zinc-100">{w.name}</p>
-                  <p className="text-xs text-zinc-400 dark:text-zinc-500 mt-0.5">
+                  <p className="font-medium text-foreground">{w.name}</p>
+                  <p className="text-xs text-muted-foreground mt-0.5">
                     {w.manuscript_type.replace(/_/g, " ")}
                   </p>
                   {w.description && (
-                    <p className="text-sm text-zinc-500 dark:text-zinc-400 mt-2 max-w-2xl leading-relaxed">
+                    <p className="text-sm text-muted-foreground mt-2 max-w-2xl leading-relaxed">
                       {w.description}
                     </p>
                   )}
                 </div>
                 <a
                   href={`/journal/${acronym}/admin/workflow`}
-                  className="shrink-0 text-xs text-zinc-400 hover:text-zinc-600 dark:hover:text-zinc-300 underline underline-offset-2"
+                  className="shrink-0 text-xs text-muted-foreground hover:text-foreground underline underline-offset-2"
                 >
                   Edit
                 </a>
@@ -215,7 +215,7 @@ export default async function WorkflowsPage({
               {/* Diagram */}
               <div className="px-5 py-5">
                 {w.nodes.length === 0 ? (
-                  <p className="text-xs text-zinc-400 dark:text-zinc-500">No steps defined.</p>
+                  <p className="text-xs text-muted-foreground">No steps defined.</p>
                 ) : (
                   <ol className="space-y-1 font-mono text-sm">
                     {w.nodes.map((node, i) => (
@@ -236,14 +236,14 @@ export default async function WorkflowsPage({
                                   <div className="mt-1.5 ml-4 space-y-1">
                                     {node.branches.map((branch, bi) => (
                                       <div key={bi} className="flex items-center gap-1.5 text-xs">
-                                        <span className="text-zinc-300 dark:text-zinc-600">
+                                        <span className="text-border">
                                           {bi === node.branches.length - 1 ? "└──" : "├──"}
                                         </span>
                                         <span className={`font-medium ${outcomeColor(branch.outcome)}`}>
                                           {outcomeLabel(branch.outcome)}
                                         </span>
-                                        <span className="text-zinc-400 dark:text-zinc-500">→</span>
-                                        <span className="text-zinc-600 dark:text-zinc-400">{branch.to}</span>
+                                        <span className="text-muted-foreground">→</span>
+                                        <span className="text-muted-foreground">{branch.to}</span>
                                       </div>
                                     ))}
                                   </div>
@@ -253,12 +253,12 @@ export default async function WorkflowsPage({
                           </div>
                         ) : (
                           <div className="flex items-center gap-3">
-                            <span className="shrink-0 w-6 h-6 rounded bg-zinc-100 dark:bg-zinc-800 text-zinc-500 dark:text-zinc-400 text-xs flex items-center justify-center font-medium">
+                            <span className="shrink-0 w-6 h-6 rounded bg-muted text-muted-foreground text-xs flex items-center justify-center font-medium">
                               {i + 1}
                             </span>
-                            <span className="text-zinc-800 dark:text-zinc-200">{node.name}</span>
+                            <span className="text-foreground">{node.name}</span>
                             {node.step_type && (
-                              <span className="text-xs text-zinc-400 dark:text-zinc-600 font-sans">
+                              <span className="text-xs text-muted-foreground font-sans">
                                 {node.step_type}
                               </span>
                             )}

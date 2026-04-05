@@ -118,23 +118,23 @@ export default async function AuthorManuscriptPage({
   return (
     <div>
       {/* Breadcrumb */}
-      <nav className="flex items-center gap-2 text-xs text-zinc-400 mb-6">
-        <Link href={`/journal/${acronym}/author`} className="hover:text-zinc-600 dark:hover:text-zinc-300">
+      <nav className="flex items-center gap-2 text-xs text-muted-foreground mb-6">
+        <Link href={`/journal/${acronym}/author`} className="hover:text-foreground">
           My Submissions
         </Link>
         <span>/</span>
-        <span className="text-zinc-600 dark:text-zinc-400 truncate max-w-xs">{manuscript.title}</span>
+        <span className="text-muted-foreground truncate max-w-xs">{manuscript.title}</span>
       </nav>
 
       <div className="grid grid-cols-1 lg:grid-cols-5 gap-8">
         {/* Left: manuscript info */}
         <div className="lg:col-span-2 space-y-5">
           <div>
-            <h1 className="text-lg font-semibold text-zinc-900 dark:text-zinc-100 mb-2 leading-snug">
+            <h1 className="text-lg font-semibold text-foreground mb-2 leading-snug">
               {manuscript.title}
             </h1>
             <div className="flex flex-wrap gap-2">
-              <span className="text-xs px-2 py-0.5 rounded bg-zinc-100 dark:bg-zinc-800 text-zinc-600 dark:text-zinc-400">
+              <span className="text-xs px-2 py-0.5 rounded bg-muted text-muted-foreground">
                 {manuscript.manuscript_type.replace(/_/g, " ")}
               </span>
               <span className={`text-xs px-2 py-0.5 rounded-full font-medium ${meta?.cls ?? "bg-zinc-100 text-zinc-500"}`}>
@@ -143,20 +143,20 @@ export default async function AuthorManuscriptPage({
             </div>
           </div>
 
-          <div className="rounded-xl border border-zinc-200 dark:border-zinc-800 bg-white dark:bg-zinc-900 px-4 py-4 space-y-3 text-sm">
+          <div className="rounded-xl border border-border bg-card px-4 py-4 space-y-3 text-sm">
             <div>
-              <p className="text-xs font-medium text-zinc-400 uppercase tracking-wider mb-0.5">Submitted</p>
-              <p className="text-zinc-700 dark:text-zinc-300">{formatDate(manuscript.submitted_at)}</p>
+              <p className="text-xs font-medium text-muted-foreground uppercase tracking-wider mb-0.5">Submitted</p>
+              <p className="text-foreground">{formatDate(manuscript.submitted_at)}</p>
             </div>
             {authors.length > 1 && (
               <div>
-                <p className="text-xs font-medium text-zinc-400 uppercase tracking-wider mb-1.5">
+                <p className="text-xs font-medium text-muted-foreground uppercase tracking-wider mb-1.5">
                   Authors ({authors.length})
                 </p>
                 <ul className="space-y-1.5">
                   {authors.map((a) => (
                     <li key={a.person_id} className="flex items-center gap-1.5 flex-wrap">
-                      <span className="text-sm text-zinc-700 dark:text-zinc-300">{a.full_name}</span>
+                      <span className="text-sm text-foreground">{a.full_name}</span>
                       {a.is_corresponding && (
                         <span className="text-xs px-1.5 py-0.5 rounded bg-blue-50 dark:bg-blue-950 text-blue-600 dark:text-blue-400 border border-blue-200 dark:border-blue-800">
                           Corresponding
@@ -169,7 +169,7 @@ export default async function AuthorManuscriptPage({
             )}
             {manuscript.file_key && (
               <div>
-                <p className="text-xs font-medium text-zinc-400 uppercase tracking-wider mb-1">Your Manuscript</p>
+                <p className="text-xs font-medium text-muted-foreground uppercase tracking-wider mb-1">Your Manuscript</p>
                 <a
                   href={`/api/manuscript/${manuscript.id}/download`}
                   className="inline-flex items-center gap-1.5 text-xs font-medium text-blue-600 dark:text-blue-400 hover:underline"
@@ -184,9 +184,9 @@ export default async function AuthorManuscriptPage({
           </div>
 
           {manuscript.abstract && (
-            <div className="rounded-xl border border-zinc-200 dark:border-zinc-800 bg-white dark:bg-zinc-900 px-4 py-4">
-              <p className="text-xs font-medium text-zinc-400 uppercase tracking-wider mb-2">Abstract</p>
-              <p className="text-sm text-zinc-600 dark:text-zinc-400 leading-relaxed">
+            <div className="rounded-xl border border-border bg-card px-4 py-4">
+              <p className="text-xs font-medium text-muted-foreground uppercase tracking-wider mb-2">Abstract</p>
+              <p className="text-sm text-muted-foreground leading-relaxed">
                 {manuscript.abstract}
               </p>
             </div>
@@ -196,29 +196,29 @@ export default async function AuthorManuscriptPage({
         {/* Right: decision letter + revision form */}
         <div className="lg:col-span-3 space-y-6">
           {decision ? (
-            <div className="rounded-xl border border-zinc-200 dark:border-zinc-800 bg-white dark:bg-zinc-900 overflow-hidden">
-              <div className="px-5 py-3 border-b border-zinc-100 dark:border-zinc-800 flex items-center justify-between">
-                <h2 className="text-sm font-semibold text-zinc-900 dark:text-zinc-100">Decision Letter</h2>
-                <span className="text-xs text-zinc-400">{formatDate(decision.occurred_at)}</span>
+            <div className="rounded-xl border border-border bg-card overflow-hidden">
+              <div className="px-5 py-3 border-b border-border flex items-center justify-between">
+                <h2 className="text-sm font-semibold text-foreground">Decision Letter</h2>
+                <span className="text-xs text-muted-foreground">{formatDate(decision.occurred_at)}</span>
               </div>
               <div className="px-5 py-5 space-y-4">
                 <div className="flex items-center gap-2">
-                  <span className="text-xs font-medium text-zinc-400 uppercase tracking-wider">Decision:</span>
-                  <span className="text-sm font-medium text-zinc-700 dark:text-zinc-300">
+                  <span className="text-xs font-medium text-muted-foreground uppercase tracking-wider">Decision:</span>
+                  <span className="text-sm font-medium text-foreground">
                     {DECISION_LABEL[decision.decision] ?? decision.decision}
                   </span>
                 </div>
                 <div>
-                  <p className="text-xs font-medium text-zinc-400 uppercase tracking-wider mb-2">Letter</p>
-                  <p className="text-sm text-zinc-700 dark:text-zinc-300 leading-relaxed whitespace-pre-wrap">
+                  <p className="text-xs font-medium text-muted-foreground uppercase tracking-wider mb-2">Letter</p>
+                  <p className="text-sm text-foreground leading-relaxed whitespace-pre-wrap">
                     {decision.letter}
                   </p>
                 </div>
               </div>
             </div>
           ) : (
-            <div className="rounded-xl border border-zinc-200 dark:border-zinc-800 bg-white dark:bg-zinc-900 px-5 py-10 text-center">
-              <p className="text-sm text-zinc-400">
+            <div className="rounded-xl border border-border bg-card px-5 py-10 text-center">
+              <p className="text-sm text-muted-foreground">
                 {manuscript.status === "submitted"
                   ? "Your manuscript is in the editorial queue. We will notify you when a decision is reached."
                   : manuscript.status === "under_review"

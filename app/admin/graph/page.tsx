@@ -65,10 +65,10 @@ export default async function GraphPage() {
 
   return (
     <div>
-      <h1 className="text-xl font-semibold text-zinc-900 dark:text-zinc-100 mb-1">
+      <h1 className="text-xl font-semibold text-foreground mb-1">
         Graph View
       </h1>
-      <p className="text-sm text-zinc-500 dark:text-zinc-400 mb-6">
+      <p className="text-sm text-muted-foreground mb-6">
         Read-only visualisation of the workflow graph. Click a node to inspect its properties.
       </p>
 
@@ -80,8 +80,8 @@ export default async function GraphPage() {
           <p className="text-xs text-red-600 dark:text-red-500 font-mono">{error}</p>
         </div>
       ) : nodes.length === 0 ? (
-        <div className="rounded-xl border border-zinc-200 dark:border-zinc-800 bg-white dark:bg-zinc-900 p-12 text-center">
-          <p className="text-sm text-zinc-400">
+        <div className="rounded-xl border border-border bg-card p-12 text-center">
+          <p className="text-sm text-muted-foreground">
             No graph data. Use Workflow Config to define a workflow and populate the graph.
           </p>
         </div>
@@ -91,7 +91,7 @@ export default async function GraphPage() {
             {LEGEND.map(({ label, color }) => (
               <span
                 key={label}
-                className="flex items-center gap-1.5 text-xs text-zinc-500 dark:text-zinc-400"
+                className="flex items-center gap-1.5 text-xs text-muted-foreground"
               >
                 <span
                   className="inline-block w-2.5 h-2.5 rounded-full shrink-0"
@@ -100,7 +100,7 @@ export default async function GraphPage() {
                 {label}
               </span>
             ))}
-            <span className="ml-auto text-xs text-zinc-400">
+            <span className="ml-auto text-xs text-muted-foreground">
               {nodes.length} nodes · {edges.length} edges
             </span>
           </div>

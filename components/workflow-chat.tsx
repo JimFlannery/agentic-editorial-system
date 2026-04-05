@@ -38,7 +38,7 @@ function ToolBadge({ name }: { name: string }) {
     commit_mutations: "Applying changes",
   }
   return (
-    <span className="inline-flex items-center gap-1.5 text-xs text-zinc-500 dark:text-zinc-400 bg-zinc-100 dark:bg-zinc-800 rounded-full px-2.5 py-1">
+    <span className="inline-flex items-center gap-1.5 text-xs text-muted-foreground bg-muted rounded-full px-2.5 py-1">
       <span className="w-1.5 h-1.5 rounded-full bg-amber-400 animate-pulse" />
       {labels[name] ?? name}
     </span>
@@ -59,7 +59,7 @@ function StagedChanges({
   return (
     <div className="rounded-xl border border-amber-200 dark:border-amber-800 bg-amber-50 dark:bg-amber-950/30 px-4 py-3 text-sm space-y-3">
       <p className="font-medium text-amber-800 dark:text-amber-300">Proposed changes</p>
-      <pre className="whitespace-pre-wrap text-zinc-700 dark:text-zinc-300 text-xs leading-relaxed font-mono">
+      <pre className="whitespace-pre-wrap text-foreground text-xs leading-relaxed font-mono">
         {summary}
       </pre>
       {!confirmed ? (
@@ -208,8 +208,8 @@ export function WorkflowChat({
   return (
     <div className="flex flex-col h-full">
       {/* Header */}
-      <div className="border-b border-zinc-200 dark:border-zinc-800 px-5 py-3">
-        <p className="text-xs text-zinc-500 dark:text-zinc-400">
+      <div className="border-b border-border px-5 py-3">
+        <p className="text-xs text-muted-foreground">
           {headerLabel} — {journalName}
         </p>
       </div>
@@ -217,7 +217,7 @@ export function WorkflowChat({
       {/* Messages */}
       <div className="flex-1 overflow-y-auto px-5 py-5 space-y-4">
         {messages.length === 0 && (
-          <p className="text-center text-zinc-400 text-sm mt-16 max-w-sm mx-auto leading-relaxed">
+          <p className="text-center text-muted-foreground text-sm mt-16 max-w-sm mx-auto leading-relaxed">
             {placeholder.replace(" (Enter to send)", "")}
           </p>
         )}
@@ -241,8 +241,8 @@ export function WorkflowChat({
               <div
                 className={`max-w-[82%] rounded-2xl px-4 py-2.5 text-sm leading-relaxed ${
                   msg.role === "user"
-                    ? "bg-zinc-900 text-white dark:bg-zinc-100 dark:text-zinc-900 whitespace-pre-wrap"
-                    : "bg-zinc-100 text-zinc-900 dark:bg-zinc-800 dark:text-zinc-100"
+                    ? "bg-foreground text-background whitespace-pre-wrap"
+                    : "bg-muted text-foreground"
                 }`}
               >
                 {msg.role === "assistant" ? (
@@ -252,8 +252,8 @@ export function WorkflowChat({
                       ul: ({ children }) => <ul className="list-disc pl-4 mb-2 space-y-0.5">{children}</ul>,
                       ol: ({ children }) => <ol className="list-decimal pl-4 mb-2 space-y-0.5">{children}</ol>,
                       li: ({ children }) => <li>{children}</li>,
-                      code: ({ children }) => <code className="bg-zinc-200 dark:bg-zinc-700 rounded px-1 py-0.5 text-xs font-mono">{children}</code>,
-                      pre: ({ children }) => <pre className="bg-zinc-200 dark:bg-zinc-700 rounded p-2 text-xs font-mono overflow-x-auto mb-2">{children}</pre>,
+                      code: ({ children }) => <code className="bg-muted rounded px-1 py-0.5 text-xs font-mono">{children}</code>,
+                      pre: ({ children }) => <pre className="bg-muted rounded p-2 text-xs font-mono overflow-x-auto mb-2">{children}</pre>,
                       strong: ({ children }) => <strong className="font-semibold">{children}</strong>,
                     }}
                   >
@@ -288,10 +288,10 @@ export function WorkflowChat({
       <form
         id="workflow-chat-form"
         onSubmit={handleSubmit}
-        className="border-t border-zinc-200 dark:border-zinc-800 px-4 py-3 flex gap-2 items-end"
+        className="border-t border-border px-4 py-3 flex gap-2 items-end"
       >
         <textarea
-          className="flex-1 resize-none rounded-xl border border-zinc-200 dark:border-zinc-700 bg-white dark:bg-zinc-900 px-3 py-2 text-sm text-zinc-900 dark:text-zinc-100 placeholder-zinc-400 focus:outline-none focus:ring-2 focus:ring-zinc-900 dark:focus:ring-zinc-100 min-h-[40px] max-h-[160px]"
+          className="flex-1 resize-none rounded-xl border border-input bg-card px-3 py-2 text-sm text-foreground placeholder-muted-foreground focus:outline-none focus:ring-2 focus:ring-foreground min-h-[40px] max-h-[160px]"
           placeholder={placeholder}
           value={input}
           onChange={(e) => setInput(e.target.value)}

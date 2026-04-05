@@ -46,19 +46,19 @@ export default async function ReviewerLayout({
   ]
 
   return (
-    <div className="min-h-screen bg-zinc-50 dark:bg-zinc-950">
+    <div className="min-h-screen bg-background">
       <div className="max-w-screen-xl mx-auto px-6">
         {/* Top bar */}
-        <header className="border-b border-zinc-200 dark:border-zinc-800 py-3 flex items-center gap-4">
+        <header className="border-b border-border py-3 flex items-center gap-4">
           <Link
             href="/"
-            className="font-semibold text-zinc-900 dark:text-zinc-100 tracking-tight text-sm"
+            className="font-semibold text-foreground tracking-tight text-sm"
           >
             Agentic<em style={{ color: "#4f46e5", fontStyle: "italic" }}>ES</em>
           </Link>
-          <span className="text-zinc-300 dark:text-zinc-700">·</span>
+          <span className="text-border">·</span>
           <JournalSelector journals={allJournals} current={journal.acronym} />
-          <span className="text-zinc-300 dark:text-zinc-700">·</span>
+          <span className="text-border">·</span>
           <RoleSelector acronym={journal.acronym} />
           <div className="ml-auto flex items-center gap-3">
             <HelpPanel />
@@ -71,7 +71,7 @@ export default async function ReviewerLayout({
           <nav className="w-48 shrink-0">
             <Link
               href={`/journal/${journal.acronym}`}
-              className="text-xs font-medium text-zinc-400 uppercase tracking-wider mb-3 hover:text-zinc-600 dark:hover:text-zinc-300 transition-colors block"
+              className="text-xs font-medium text-muted-foreground uppercase tracking-wider mb-3 hover:text-foreground transition-colors block"
             >
               {journal.acronym}
             </Link>
@@ -81,8 +81,8 @@ export default async function ReviewerLayout({
                   <Link
                     href={item.href}
                     className={cn(
-                      "block px-3 py-2 rounded-lg text-sm text-zinc-600 dark:text-zinc-400",
-                      "hover:bg-zinc-100 dark:hover:bg-zinc-800 hover:text-zinc-900 dark:hover:text-zinc-100",
+                      "block px-3 py-2 rounded-lg text-sm text-muted-foreground",
+                      "hover:bg-muted hover:text-foreground",
                       "transition-colors"
                     )}
                   >

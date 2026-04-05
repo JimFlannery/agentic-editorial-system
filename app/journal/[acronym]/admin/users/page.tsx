@@ -58,8 +58,8 @@ export default async function UsersPage({
     <div>
       <div className="flex items-center justify-between mb-6">
         <div>
-          <h1 className="text-xl font-semibold text-zinc-900 dark:text-zinc-100">Users</h1>
-          <p className="text-sm text-zinc-500 dark:text-zinc-400 mt-0.5">
+          <h1 className="text-xl font-semibold text-foreground">Users</h1>
+          <p className="text-sm text-muted-foreground mt-0.5">
             {people.length} person{people.length !== 1 ? "s" : ""} in {journal.name}
           </p>
         </div>
@@ -67,16 +67,16 @@ export default async function UsersPage({
       </div>
 
       {people.length === 0 ? (
-        <p className="text-sm text-zinc-400 dark:text-zinc-500">No users yet.</p>
+        <p className="text-sm text-muted-foreground">No users yet.</p>
       ) : (
-        <div className="rounded-xl border border-zinc-200 dark:border-zinc-800 overflow-hidden">
+        <div className="rounded-xl border border-border overflow-hidden">
           <table className="w-full text-sm">
             <thead>
-              <tr className="border-b border-zinc-200 dark:border-zinc-800 bg-zinc-50 dark:bg-zinc-900">
-                <th className="text-left px-4 py-3 font-medium text-zinc-500 dark:text-zinc-400">Name</th>
-                <th className="text-left px-4 py-3 font-medium text-zinc-500 dark:text-zinc-400">Email</th>
-                <th className="text-left px-4 py-3 font-medium text-zinc-500 dark:text-zinc-400">Roles</th>
-                <th className="text-left px-4 py-3 font-medium text-zinc-500 dark:text-zinc-400">ORCID</th>
+              <tr className="border-b border-border bg-muted">
+                <th className="text-left px-4 py-3 font-medium text-muted-foreground">Name</th>
+                <th className="text-left px-4 py-3 font-medium text-muted-foreground">Email</th>
+                <th className="text-left px-4 py-3 font-medium text-muted-foreground">Roles</th>
+                <th className="text-left px-4 py-3 font-medium text-muted-foreground">ORCID</th>
                 <th className="px-4 py-3" />
               </tr>
             </thead>
@@ -84,10 +84,10 @@ export default async function UsersPage({
               {people.map((p, i) => (
                 <tr
                   key={p.id}
-                  className={i < people.length - 1 ? "border-b border-zinc-100 dark:border-zinc-800" : ""}
+                  className={i < people.length - 1 ? "border-b border-border/50" : ""}
                 >
-                  <td className="px-4 py-3 font-medium text-zinc-900 dark:text-zinc-100">{p.full_name}</td>
-                  <td className="px-4 py-3 text-zinc-500 dark:text-zinc-400">{p.email}</td>
+                  <td className="px-4 py-3 font-medium text-foreground">{p.full_name}</td>
+                  <td className="px-4 py-3 text-muted-foreground">{p.email}</td>
                   <td className="px-4 py-3">
                     <div className="flex flex-wrap gap-1">
                       {p.roles
@@ -99,20 +99,20 @@ export default async function UsersPage({
                             return (
                               <span
                                 key={role}
-                                className="inline-flex items-center gap-1 rounded-full bg-zinc-100 dark:bg-zinc-800 text-zinc-600 dark:text-zinc-400 text-xs px-2 py-0.5"
+                                className="inline-flex items-center gap-1 rounded-full bg-muted text-muted-foreground text-xs px-2 py-0.5"
                               >
                                 {role.replace(/_/g, " ")}
                                 {sectionName && (
-                                  <span className="text-zinc-400 dark:text-zinc-500">· {sectionName}</span>
+                                  <span className="text-muted-foreground">· {sectionName}</span>
                                 )}
                               </span>
                             )
                           })
-                        : <span className="text-zinc-300 dark:text-zinc-600">—</span>
+                        : <span className="text-border">—</span>
                       }
                     </div>
                   </td>
-                  <td className="px-4 py-3 text-zinc-400 dark:text-zinc-500 text-xs font-mono">
+                  <td className="px-4 py-3 text-muted-foreground text-xs font-mono">
                     {p.orcid ?? "—"}
                   </td>
                   <td className="px-4 py-3 text-right">

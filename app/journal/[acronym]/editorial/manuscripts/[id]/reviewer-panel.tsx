@@ -103,14 +103,14 @@ export default function ReviewerPanel({ acronym, manuscriptId, journalId, initia
 
   return (
     <div className="mt-8">
-      <div className="rounded-xl border border-zinc-200 dark:border-zinc-800 bg-white dark:bg-zinc-900 overflow-hidden">
-        <div className="px-5 py-3 border-b border-zinc-100 dark:border-zinc-800 flex items-center justify-between">
-          <h2 className="text-sm font-semibold text-zinc-900 dark:text-zinc-100">Reviewers</h2>
-          <span className="text-xs text-zinc-400">{reviewers.length} invited</span>
+      <div className="rounded-xl border border-border bg-card overflow-hidden">
+        <div className="px-5 py-3 border-b border-border flex items-center justify-between">
+          <h2 className="text-sm font-semibold text-foreground">Reviewers</h2>
+          <span className="text-xs text-muted-foreground">{reviewers.length} invited</span>
         </div>
 
         {/* Invite form */}
-        <div className="px-5 py-4 border-b border-zinc-100 dark:border-zinc-800 space-y-3">
+        <div className="px-5 py-4 border-b border-border space-y-3">
           <div className="flex gap-2">
             {/* Search */}
             <div ref={searchRef} className="relative flex-1">
@@ -119,13 +119,13 @@ export default function ReviewerPanel({ acronym, manuscriptId, journalId, initia
                 value={query}
                 onChange={handleQueryChange}
                 placeholder="Search by name or email…"
-                className="w-full text-sm border border-zinc-200 dark:border-zinc-700 rounded-lg px-3 py-2 bg-white dark:bg-zinc-900 text-zinc-900 dark:text-zinc-100 placeholder-zinc-400 focus:outline-none focus:ring-2 focus:ring-zinc-400 dark:focus:ring-zinc-600"
+                className="w-full text-sm border border-input rounded-lg px-3 py-2 bg-card text-foreground placeholder-zinc-400 focus:outline-none focus:ring-2 focus:ring-zinc-400 dark:focus:ring-zinc-600"
               />
               {/* Dropdown results */}
               {(results.length > 0 || searching) && (
-                <div className="absolute z-10 top-full left-0 right-0 mt-1 rounded-lg border border-zinc-200 dark:border-zinc-700 bg-white dark:bg-zinc-900 shadow-lg overflow-hidden">
+                <div className="absolute z-10 top-full left-0 right-0 mt-1 rounded-lg border border-input bg-card shadow-lg overflow-hidden">
                   {searching && (
-                    <div className="px-3 py-2 text-xs text-zinc-400">Searching…</div>
+                    <div className="px-3 py-2 text-xs text-muted-foreground">Searching…</div>
                   )}
                   {results.map((r) => (
                     <button
@@ -133,15 +133,15 @@ export default function ReviewerPanel({ acronym, manuscriptId, journalId, initia
                       type="button"
                       disabled={r.already_invited || isPending}
                       onClick={() => handleInvite(r)}
-                      className="w-full text-left px-3 py-2.5 hover:bg-zinc-50 dark:hover:bg-zinc-800 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+                      className="w-full text-left px-3 py-2.5 hover:bg-muted transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
                     >
-                      <p className="text-sm font-medium text-zinc-900 dark:text-zinc-100">
+                      <p className="text-sm font-medium text-foreground">
                         {r.full_name}
                         {r.already_invited && (
-                          <span className="ml-2 text-xs text-zinc-400 font-normal">already invited</span>
+                          <span className="ml-2 text-xs text-muted-foreground font-normal">already invited</span>
                         )}
                       </p>
-                      <p className="text-xs text-zinc-400">{r.email}</p>
+                      <p className="text-xs text-muted-foreground">{r.email}</p>
                     </button>
                   ))}
                 </div>
@@ -150,16 +150,16 @@ export default function ReviewerPanel({ acronym, manuscriptId, journalId, initia
 
             {/* Due days */}
             <div className="flex items-center gap-1.5 shrink-0">
-              <label className="text-xs text-zinc-500 whitespace-nowrap">Due in</label>
+              <label className="text-xs text-muted-foreground whitespace-nowrap">Due in</label>
               <input
                 type="number"
                 min="1"
                 max="90"
                 value={dueDays}
                 onChange={(e) => setDueDays(e.target.value)}
-                className="w-16 text-sm border border-zinc-200 dark:border-zinc-700 rounded-lg px-2 py-2 bg-white dark:bg-zinc-900 text-zinc-900 dark:text-zinc-100 text-center focus:outline-none focus:ring-2 focus:ring-zinc-400 dark:focus:ring-zinc-600"
+                className="w-16 text-sm border border-input rounded-lg px-2 py-2 bg-card text-foreground text-center focus:outline-none focus:ring-2 focus:ring-zinc-400 dark:focus:ring-zinc-600"
               />
-              <span className="text-xs text-zinc-500">days</span>
+              <span className="text-xs text-muted-foreground">days</span>
             </div>
           </div>
 
@@ -174,19 +174,19 @@ export default function ReviewerPanel({ acronym, manuscriptId, journalId, initia
         {/* Reviewer list */}
         {reviewers.length === 0 ? (
           <div className="px-5 py-10 text-center">
-            <p className="text-sm text-zinc-500 dark:text-zinc-400">No reviewers invited yet.</p>
-            <p className="text-xs text-zinc-400 mt-1">Search for a person above to invite them.</p>
+            <p className="text-sm text-muted-foreground">No reviewers invited yet.</p>
+            <p className="text-xs text-muted-foreground mt-1">Search for a person above to invite them.</p>
           </div>
         ) : (
-          <ul className="divide-y divide-zinc-100 dark:divide-zinc-800">
+          <ul className="divide-y divide-border">
             {reviewers.map((r) => {
               const meta = STATUS_META[r.invitation_status]
               const due = daysUntil(r.due_at)
               return (
                 <li key={r.assignment_id} className="flex items-center gap-4 px-5 py-3.5">
                   <div className="flex-1 min-w-0">
-                    <p className="text-sm font-medium text-zinc-900 dark:text-zinc-100">{r.full_name}</p>
-                    <p className="text-xs text-zinc-400 mt-0.5">
+                    <p className="text-sm font-medium text-foreground">{r.full_name}</p>
+                    <p className="text-xs text-muted-foreground mt-0.5">
                       {r.email} · Invited {formatDate(r.assigned_at)}
                       {due && (
                         <span className={`ml-2 ${due.overdue ? "text-red-500" : ""}`}>

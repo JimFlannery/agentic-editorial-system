@@ -52,12 +52,12 @@ async function getRecentActivity(journalId: string): Promise<ActivityEvent[]> {
 }
 
 const eventLabels: Record<string, { label: string; cls: string }> = {
-  "manuscript.submitted": { label: "Manuscript submitted",  cls: "text-zinc-600 dark:text-zinc-400" },
+  "manuscript.submitted": { label: "Manuscript submitted",  cls: "text-muted-foreground" },
   "checklist.evaluated":  { label: "Checklist evaluated",   cls: "text-blue-600 dark:text-blue-400" },
   "checklist.passed":     { label: "Passed to editor",      cls: "text-green-600 dark:text-green-400" },
   "reviewer.invited":     { label: "Reviewer invited",      cls: "text-violet-600 dark:text-violet-400" },
   "reviewer.accepted":    { label: "Reviewer accepted",     cls: "text-violet-600 dark:text-violet-400" },
-  "reviewer.declined":    { label: "Reviewer declined",     cls: "text-zinc-500 dark:text-zinc-400" },
+  "reviewer.declined":    { label: "Reviewer declined",     cls: "text-muted-foreground" },
   "review.submitted":     { label: "Review submitted",      cls: "text-indigo-600 dark:text-indigo-400" },
   "decision.sent":        { label: "Decision sent",         cls: "text-green-600 dark:text-green-400" },
   "revision.submitted":   { label: "Revision submitted",    cls: "text-amber-600 dark:text-amber-400" },
@@ -97,12 +97,12 @@ export default async function EditorialSupportPage({
 
   return (
     <div>
-      <h1 className="text-xl font-semibold text-zinc-900 dark:text-zinc-100 mb-1">
+      <h1 className="text-xl font-semibold text-foreground mb-1">
         Editorial Support
       </h1>
-      <p className="text-sm text-zinc-500 dark:text-zinc-400 mb-8">
+      <p className="text-sm text-muted-foreground mb-8">
         Author correspondence, administrative tasks, and journal operations for{" "}
-        <span className="font-medium text-zinc-700 dark:text-zinc-300">{acronym}</span>.
+        <span className="font-medium text-foreground">{acronym}</span>.
       </p>
 
       {/* Quick stats */}
@@ -115,45 +115,45 @@ export default async function EditorialSupportPage({
           <Link
             key={stat.label}
             href={stat.href}
-            className="block rounded-xl border border-zinc-200 dark:border-zinc-800 bg-white dark:bg-zinc-900 px-5 py-4 hover:border-zinc-400 dark:hover:border-zinc-600 transition-colors"
+            className="block rounded-xl border border-border bg-card px-5 py-4 hover:border-border transition-colors"
           >
-            <p className="text-2xl font-bold text-zinc-900 dark:text-zinc-100 mb-1">{stat.count}</p>
-            <p className="text-sm font-medium text-zinc-700 dark:text-zinc-300">{stat.label}</p>
+            <p className="text-2xl font-bold text-foreground mb-1">{stat.count}</p>
+            <p className="text-sm font-medium text-foreground">{stat.label}</p>
           </Link>
         ))}
       </div>
 
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
         {/* Activity feed */}
-        <div className="lg:col-span-2 rounded-xl border border-zinc-200 dark:border-zinc-800 bg-white dark:bg-zinc-900 overflow-hidden">
-          <div className="px-5 py-3 border-b border-zinc-100 dark:border-zinc-800">
-            <h2 className="text-sm font-medium text-zinc-900 dark:text-zinc-100">Recent Activity</h2>
+        <div className="lg:col-span-2 rounded-xl border border-border bg-card overflow-hidden">
+          <div className="px-5 py-3 border-b border-border/50">
+            <h2 className="text-sm font-medium text-foreground">Recent Activity</h2>
           </div>
 
           {activity.length === 0 ? (
             <div className="px-5 py-10 text-center">
-              <p className="text-sm text-zinc-400">No activity recorded yet.</p>
+              <p className="text-sm text-muted-foreground">No activity recorded yet.</p>
             </div>
           ) : (
-            <ul className="divide-y divide-zinc-100 dark:divide-zinc-800">
+            <ul className="divide-y divide-border/50">
               {activity.map((ev, i) => {
                 const meta = eventLabels[ev.event_type]
                 return (
                   <li key={i}>
                     <Link
                       href={`/journal/${acronym}/editorial/manuscripts/${ev.manuscript_id}`}
-                      className="flex items-start gap-3 px-5 py-3 hover:bg-zinc-50 dark:hover:bg-zinc-800/50 transition-colors"
+                      className="flex items-start gap-3 px-5 py-3 hover:bg-muted/50 transition-colors"
                     >
                       <div className="min-w-0 flex-1">
-                        <p className="text-sm text-zinc-900 dark:text-zinc-100 truncate">{ev.title}</p>
-                        <p className={`text-xs mt-0.5 ${meta?.cls ?? "text-zinc-500"}`}>
+                        <p className="text-sm text-foreground truncate">{ev.title}</p>
+                        <p className={`text-xs mt-0.5 ${meta?.cls ?? "text-muted-foreground"}`}>
                           {meta?.label ?? ev.event_type.replace(/\./g, " ")}
                         </p>
                         {ev.summary && (
-                          <p className="text-xs text-zinc-400 mt-0.5 truncate">{ev.summary}</p>
+                          <p className="text-xs text-muted-foreground mt-0.5 truncate">{ev.summary}</p>
                         )}
                       </div>
-                      <span className="shrink-0 text-xs text-zinc-400 whitespace-nowrap">
+                      <span className="shrink-0 text-xs text-muted-foreground whitespace-nowrap">
                         {formatDateTime(ev.occurred_at)}
                       </span>
                     </Link>
@@ -166,15 +166,15 @@ export default async function EditorialSupportPage({
 
         {/* Quick links */}
         <div className="space-y-3">
-          <h2 className="text-sm font-medium text-zinc-900 dark:text-zinc-100 px-1">Quick Links</h2>
+          <h2 className="text-sm font-medium text-foreground px-1">Quick Links</h2>
           {quickLinks.map((link) => (
             <Link
               key={link.href}
               href={link.href}
-              className="block rounded-xl border border-zinc-200 dark:border-zinc-800 bg-white dark:bg-zinc-900 px-4 py-3 hover:border-zinc-400 dark:hover:border-zinc-600 transition-colors"
+              className="block rounded-xl border border-border bg-card px-4 py-3 hover:border-border transition-colors"
             >
-              <p className="text-sm font-medium text-zinc-900 dark:text-zinc-100">{link.label}</p>
-              <p className="text-xs text-zinc-500 dark:text-zinc-400 mt-0.5">{link.description}</p>
+              <p className="text-sm font-medium text-foreground">{link.label}</p>
+              <p className="text-xs text-muted-foreground mt-0.5">{link.description}</p>
             </Link>
           ))}
         </div>

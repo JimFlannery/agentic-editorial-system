@@ -84,7 +84,7 @@ export function Chat() {
       {/* Messages */}
       <div className="flex-1 overflow-y-auto px-4 py-6 space-y-4">
         {messages.length === 0 && (
-          <p className="text-center text-zinc-400 text-sm mt-16">
+          <p className="text-center text-muted-foreground text-sm mt-16">
             Start a conversation with Claude.
           </p>
         )}
@@ -96,8 +96,8 @@ export function Chat() {
             <div
               className={`max-w-[80%] rounded-2xl px-4 py-2.5 text-sm leading-relaxed whitespace-pre-wrap ${
                 msg.role === "user"
-                  ? "bg-zinc-900 text-white dark:bg-zinc-100 dark:text-zinc-900"
-                  : "bg-zinc-100 text-zinc-900 dark:bg-zinc-800 dark:text-zinc-100"
+                  ? "bg-foreground text-background"
+                  : "bg-muted text-foreground"
               }`}
             >
               {msg.content}
@@ -113,10 +113,10 @@ export function Chat() {
       {/* Input */}
       <form
         onSubmit={handleSubmit}
-        className="border-t border-zinc-200 dark:border-zinc-800 px-4 py-3 flex gap-2 items-end"
+        className="border-t border-border px-4 py-3 flex gap-2 items-end"
       >
         <textarea
-          className="flex-1 resize-none rounded-xl border border-zinc-200 dark:border-zinc-700 bg-white dark:bg-zinc-900 px-3 py-2 text-sm text-zinc-900 dark:text-zinc-100 placeholder-zinc-400 focus:outline-none focus:ring-2 focus:ring-zinc-900 dark:focus:ring-zinc-100 min-h-[40px] max-h-[160px]"
+          className="flex-1 resize-none rounded-xl border border-input bg-card px-3 py-2 text-sm text-foreground placeholder-muted-foreground focus:outline-none focus:ring-2 focus:ring-foreground min-h-[40px] max-h-[160px]"
           placeholder="Message Claude… (Enter to send, Shift+Enter for new line)"
           value={input}
           onChange={(e) => setInput(e.target.value)}

@@ -40,7 +40,7 @@ export function UserMenu({ name, email }: { name: string; email: string }) {
   const avatar = (
     <button
       onClick={() => setOpen((v) => !v)}
-      className="flex items-center justify-center w-7 h-7 rounded-full bg-zinc-800 dark:bg-zinc-200 text-white dark:text-zinc-900 text-xs font-semibold shrink-0 hover:opacity-80 transition-opacity"
+      className="flex items-center justify-center w-7 h-7 rounded-full bg-foreground text-background text-xs font-semibold shrink-0 hover:opacity-80 transition-opacity"
       aria-label="User menu"
     >
       {initials(name)}
@@ -52,17 +52,17 @@ export function UserMenu({ name, email }: { name: string; email: string }) {
       {avatar}
 
       {open && (
-        <div className="absolute right-0 top-9 w-56 rounded-xl border border-zinc-200 dark:border-zinc-700 bg-white dark:bg-zinc-900 shadow-lg py-1 z-50">
+        <div className="absolute right-0 top-9 w-56 rounded-xl border border-input bg-card shadow-lg py-1 z-50">
           {/* User info */}
-          <div className="px-3 py-2 border-b border-zinc-100 dark:border-zinc-800">
-            <p className="text-xs font-medium text-zinc-900 dark:text-zinc-100 truncate">{name}</p>
-            <p className="text-xs text-zinc-400 dark:text-zinc-500 truncate">{email}</p>
+          <div className="px-3 py-2 border-b border-border">
+            <p className="text-xs font-medium text-foreground truncate">{name}</p>
+            <p className="text-xs text-muted-foreground truncate">{email}</p>
           </div>
 
           {/* Theme toggle */}
           <button
             onClick={() => setTheme(resolvedTheme === "dark" ? "light" : "dark")}
-            className="w-full flex items-center gap-2.5 px-3 py-2 text-xs text-zinc-600 dark:text-zinc-400 hover:bg-zinc-50 dark:hover:bg-zinc-800 hover:text-zinc-900 dark:hover:text-zinc-100 transition-colors"
+            className="w-full flex items-center gap-2.5 px-3 py-2 text-xs text-muted-foreground hover:bg-muted/50 hover:text-foreground transition-colors"
           >
             {mounted && resolvedTheme === "dark" ? (
               <>
@@ -84,7 +84,7 @@ export function UserMenu({ name, email }: { name: string; email: string }) {
           {/* Sign out */}
           <button
             onClick={handleSignOut}
-            className="w-full flex items-center gap-2.5 px-3 py-2 text-xs text-zinc-600 dark:text-zinc-400 hover:bg-zinc-50 dark:hover:bg-zinc-800 hover:text-zinc-900 dark:hover:text-zinc-100 transition-colors"
+            className="w-full flex items-center gap-2.5 px-3 py-2 text-xs text-muted-foreground hover:bg-muted/50 hover:text-foreground transition-colors"
           >
             <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
               <path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/><polyline points="16 17 21 12 16 7"/><line x1="21" y1="12" x2="9" y2="12"/>

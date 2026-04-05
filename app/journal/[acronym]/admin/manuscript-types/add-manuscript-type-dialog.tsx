@@ -51,7 +51,7 @@ export function AddManuscriptTypeDialog({ journalId, type }: Props) {
   return (
     <Dialog open={open} onOpenChange={setOpen}>
       <DialogTrigger render={isEdit
-        ? <button className="text-xs text-zinc-400 hover:text-zinc-700 dark:hover:text-zinc-200 transition-colors" />
+        ? <button className="text-xs text-muted-foreground hover:text-foreground transition-colors" />
         : <Button />
       }>
         {isEdit ? "Edit" : "Add type"}
@@ -87,7 +87,7 @@ export function AddManuscriptTypeDialog({ journalId, type }: Props) {
                 id="active"
                 name="active"
                 defaultValue={type?.active ? "true" : "false"}
-                className="w-full rounded-md border border-zinc-200 dark:border-zinc-800 bg-white dark:bg-zinc-950 px-3 py-2 text-sm text-zinc-900 dark:text-zinc-100 focus:outline-none focus:ring-2 focus:ring-zinc-500"
+                className="w-full rounded-md border border-border bg-background px-3 py-2 text-sm text-foreground focus:outline-none focus:ring-2 focus:ring-zinc-500"
               >
                 <option value="true">Active</option>
                 <option value="false">Inactive</option>

@@ -63,12 +63,12 @@ export default async function ReviewerPage({
   if (!person) {
     return (
       <div className="max-w-lg">
-        <h1 className="text-xl font-semibold text-zinc-900 dark:text-zinc-100 mb-2">
+        <h1 className="text-xl font-semibold text-foreground mb-2">
           Account not provisioned
         </h1>
-        <p className="text-sm text-zinc-500 dark:text-zinc-400 leading-relaxed">
+        <p className="text-sm text-muted-foreground leading-relaxed">
           Your account ({session.user.email}) does not have a reviewer profile for{" "}
-          <span className="font-medium text-zinc-700 dark:text-zinc-300">{acronym}</span>.
+          <span className="font-medium text-foreground">{acronym}</span>.
           Please contact the editorial office to have your account set up.
         </p>
       </div>
@@ -98,12 +98,12 @@ export default async function ReviewerPage({
 
   return (
     <div>
-      <h1 className="text-xl font-semibold text-zinc-900 dark:text-zinc-100 mb-1">
+      <h1 className="text-xl font-semibold text-foreground mb-1">
         Reviewer Center
       </h1>
-      <p className="text-sm text-zinc-500 dark:text-zinc-400 mb-8">
+      <p className="text-sm text-muted-foreground mb-8">
         Welcome back,{" "}
-        <span className="font-medium text-zinc-700 dark:text-zinc-300">{person.full_name}</span>.
+        <span className="font-medium text-foreground">{person.full_name}</span>.
       </p>
 
       {/* Stats */}
@@ -115,32 +115,32 @@ export default async function ReviewerPage({
         ].map((stat) => (
           <div
             key={stat.label}
-            className="rounded-xl border border-zinc-200 dark:border-zinc-800 bg-white dark:bg-zinc-900 px-5 py-4"
+            className="rounded-xl border border-border bg-card px-5 py-4"
           >
-            <p className="text-2xl font-bold text-zinc-900 dark:text-zinc-100 mb-1">{stat.count}</p>
-            <p className="text-sm font-medium text-zinc-700 dark:text-zinc-300">{stat.label}</p>
+            <p className="text-2xl font-bold text-foreground mb-1">{stat.count}</p>
+            <p className="text-sm font-medium text-foreground">{stat.label}</p>
           </div>
         ))}
       </div>
 
       {/* Assignment list */}
-      <div className="rounded-xl border border-zinc-200 dark:border-zinc-800 bg-white dark:bg-zinc-900 overflow-hidden">
-        <div className="px-5 py-3 border-b border-zinc-100 dark:border-zinc-800 flex items-center justify-between">
-          <h2 className="text-sm font-medium text-zinc-900 dark:text-zinc-100">My Reviews</h2>
-          <span className="text-xs text-zinc-400">{assignments.length} total</span>
+      <div className="rounded-xl border border-border bg-card overflow-hidden">
+        <div className="px-5 py-3 border-b border-border/50 flex items-center justify-between">
+          <h2 className="text-sm font-medium text-foreground">My Reviews</h2>
+          <span className="text-xs text-muted-foreground">{assignments.length} total</span>
         </div>
 
         {assignments.length === 0 ? (
           <div className="px-5 py-12 text-center">
-            <p className="text-sm text-zinc-500 dark:text-zinc-400">
+            <p className="text-sm text-muted-foreground">
               No review assignments yet.
             </p>
-            <p className="text-xs text-zinc-400 dark:text-zinc-500 mt-2">
+            <p className="text-xs text-muted-foreground mt-2">
               You will receive an email when an editor invites you to review a manuscript.
             </p>
           </div>
         ) : (
-          <ul className="divide-y divide-zinc-100 dark:divide-zinc-800">
+          <ul className="divide-y divide-border/50">
             {assignments.map((a) => {
               const meta = INVITE_META[a.review_status]
               const due = daysUntil(a.due_at)
@@ -148,16 +148,16 @@ export default async function ReviewerPage({
                 <li key={a.manuscript_id}>
                   <Link
                     href={`/journal/${acronym}/reviewer/manuscripts/${a.manuscript_id}`}
-                    className="flex items-center gap-4 px-5 py-3.5 hover:bg-zinc-50 dark:hover:bg-zinc-800/50 transition-colors"
+                    className="flex items-center gap-4 px-5 py-3.5 hover:bg-muted/50 transition-colors"
                   >
                     <div className="flex-1 min-w-0">
-                      <p className="text-sm font-medium text-zinc-900 dark:text-zinc-100 truncate">
+                      <p className="text-sm font-medium text-foreground truncate">
                         {a.title}
                       </p>
-                      <p className="text-xs text-zinc-400 mt-0.5">
+                      <p className="text-xs text-muted-foreground mt-0.5">
                         {a.author_name} · Invited {formatDate(a.invited_at)}
                         {due && (
-                          <span className={`ml-2 ${due === "Overdue" ? "text-red-500" : "text-zinc-400"}`}>
+                          <span className={`ml-2 ${due === "Overdue" ? "text-red-500" : "text-muted-foreground"}`}>
                             · {due}
                           </span>
                         )}

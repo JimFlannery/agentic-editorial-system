@@ -60,13 +60,13 @@ function AuthForm() {
   }
 
   return (
-    <div className="min-h-screen bg-zinc-50 dark:bg-zinc-950 flex items-center justify-center px-6">
+    <div className="min-h-screen bg-background flex items-center justify-center px-6">
       <div className="w-full max-w-sm">
         <div className="mb-8 text-center">
-          <h1 className="text-xl font-semibold text-zinc-900 dark:text-zinc-100">
+          <h1 className="text-xl font-semibold text-foreground">
             {mode === "signin" ? "Sign in" : "Create account"}
           </h1>
-          <p className="text-sm text-zinc-500 dark:text-zinc-400 mt-1">
+          <p className="text-sm text-muted-foreground mt-1">
             Agentic<em style={{ color: "#4f46e5", fontStyle: "italic" }}>ES</em>
             {journalAcronym && (
               <> &middot; <span className="font-medium">{journalAcronym}</span></>
@@ -75,7 +75,7 @@ function AuthForm() {
         </div>
 
         {/* Mode toggle */}
-        <div className="flex rounded-lg border border-zinc-200 dark:border-zinc-700 p-1 mb-6">
+        <div className="flex rounded-lg border border-input p-1 mb-6">
           {(["signin", "signup"] as const).map((m) => (
             <button
               key={m}
@@ -83,8 +83,8 @@ function AuthForm() {
               onClick={() => switchMode(m)}
               className={`flex-1 rounded-md py-1.5 text-xs font-medium transition-colors ${
                 mode === m
-                  ? "bg-white dark:bg-zinc-800 text-zinc-900 dark:text-zinc-100 shadow-sm"
-                  : "text-zinc-500 dark:text-zinc-400 hover:text-zinc-700 dark:hover:text-zinc-300"
+                  ? "bg-card text-foreground shadow-sm"
+                  : "text-muted-foreground hover:text-foreground"
               }`}
             >
               {m === "signin" ? "Sign in" : "Sign up"}
@@ -97,7 +97,7 @@ function AuthForm() {
             <div>
               <label
                 htmlFor="name"
-                className="block text-xs font-medium text-zinc-700 dark:text-zinc-300 mb-1.5"
+                className="block text-xs font-medium text-foreground mb-1.5"
               >
                 Full name
               </label>
@@ -108,7 +108,7 @@ function AuthForm() {
                 required
                 value={name}
                 onChange={(e) => setName(e.target.value)}
-                className="w-full rounded-lg border border-zinc-200 dark:border-zinc-700 bg-white dark:bg-zinc-900 px-3 py-2 text-sm text-zinc-900 dark:text-zinc-100 placeholder:text-zinc-400 focus:outline-none focus:ring-2 focus:ring-zinc-900 dark:focus:ring-zinc-100 focus:border-transparent"
+                className="w-full rounded-lg border border-input bg-card px-3 py-2 text-sm text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-foreground focus:border-transparent"
                 placeholder="Dr. Jane Smith"
               />
             </div>
@@ -117,7 +117,7 @@ function AuthForm() {
           <div>
             <label
               htmlFor="email"
-              className="block text-xs font-medium text-zinc-700 dark:text-zinc-300 mb-1.5"
+              className="block text-xs font-medium text-foreground mb-1.5"
             >
               Email address
             </label>
@@ -128,7 +128,7 @@ function AuthForm() {
               required
               value={email}
               onChange={(e) => setEmail(e.target.value)}
-              className="w-full rounded-lg border border-zinc-200 dark:border-zinc-700 bg-white dark:bg-zinc-900 px-3 py-2 text-sm text-zinc-900 dark:text-zinc-100 placeholder:text-zinc-400 focus:outline-none focus:ring-2 focus:ring-zinc-900 dark:focus:ring-zinc-100 focus:border-transparent"
+              className="w-full rounded-lg border border-input bg-card px-3 py-2 text-sm text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-foreground focus:border-transparent"
               placeholder="you@example.com"
             />
           </div>
@@ -136,7 +136,7 @@ function AuthForm() {
           <div>
             <label
               htmlFor="password"
-              className="block text-xs font-medium text-zinc-700 dark:text-zinc-300 mb-1.5"
+              className="block text-xs font-medium text-foreground mb-1.5"
             >
               Password
             </label>
@@ -147,7 +147,7 @@ function AuthForm() {
               required
               value={password}
               onChange={(e) => setPassword(e.target.value)}
-              className="w-full rounded-lg border border-zinc-200 dark:border-zinc-700 bg-white dark:bg-zinc-900 px-3 py-2 text-sm text-zinc-900 dark:text-zinc-100 placeholder:text-zinc-400 focus:outline-none focus:ring-2 focus:ring-zinc-900 dark:focus:ring-zinc-100 focus:border-transparent"
+              className="w-full rounded-lg border border-input bg-card px-3 py-2 text-sm text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-foreground focus:border-transparent"
               placeholder="••••••••"
             />
           </div>
@@ -159,7 +159,7 @@ function AuthForm() {
           <button
             type="submit"
             disabled={loading}
-            className="w-full rounded-lg bg-zinc-900 dark:bg-zinc-100 text-white dark:text-zinc-900 text-sm font-medium py-2.5 hover:bg-zinc-700 dark:hover:bg-zinc-300 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+            className="w-full rounded-lg bg-foreground text-background text-sm font-medium py-2.5 hover:bg-zinc-700 dark:hover:bg-zinc-300 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
           >
             {loading
               ? mode === "signin" ? "Signing in…" : "Creating account…"
@@ -168,7 +168,7 @@ function AuthForm() {
         </form>
 
         {mode === "signup" && !journalAcronym && (
-          <p className="mt-4 text-xs text-center text-zinc-400 dark:text-zinc-500">
+          <p className="mt-4 text-xs text-center text-muted-foreground">
             To be assigned a role on a journal, contact your editorial office after
             creating your account.
           </p>
