@@ -340,6 +340,12 @@ Configuration workspace, separate from the editorial workflow. Header links back
 
 Confirm-before-commit applies to both modes. A Standard Peer Review workflow (5 steps, 1 gate with `ON_PASS`/`ON_TIMEOUT` branches) has been configured and committed via chat.
 
+**Help guide panel** (`/api/help`) — context-aware slide-over panel (Shadcn `Sheet`) available in every layout header. Serves the correct markdown user guide based on the current route (reviewer guide on reviewer pages, AE guide on editorial pages, etc.) and renders it as styled HTML. Triggered by the `?` button in the top bar.
+
+### Branding & Theming
+- **AgenticES wordmark** — "Agentic*ES*" logo mark (italic indigo *ES*) in every layout header, the home page hero, login page, and footer; links back to `/`
+- **Full semantic token refactor** — all 52 page and component files use Shadcn semantic tokens (`bg-background`, `text-foreground`, `text-muted-foreground`, `border-border`, `bg-card`, `bg-muted`, etc.) instead of hardcoded zinc classes. Journal operators can apply any Shadcn theme and the entire UI rethemes — colors, radius, and typography — without code changes.
+
 ### Test Infrastructure
 - **`db/seed_test.sql`** — deterministic TEST journal seed: 10 users (all roles), 8 manuscripts covering every workflow status, reviewer assignments on both accepted and under-review manuscripts
 - **Playwright E2E** (`tests/e2e/`) — auth setup (storageState per role) + author, queue, manuscript-detail, EIC, and reviewer spec files; 28 tests
@@ -349,7 +355,6 @@ Confirm-before-commit applies to both modes. A Standard Peer Review workflow (5 
 ### Planned (not yet built)
 - **Admin-configurable form fields** — drag-to-reorder checklist questions and submission form fields per journal (`manuscript.form_fields`)
 - **In-app notification feed** — editorial staff notification panel in the header (manuscript assigned, review submitted, decision sent)
-- **Help bot** — context-aware Claude chat widget available to all roles; answers questions about the system, surfaces relevant documentation, and guides users through unfamiliar workflows without leaving the page
 - **Research Integrity Screening agent** — per-submission fraud signal report (image forensics, IP anomalies, tortured phrases, reviewer manipulation, AI-generated text, ORCID verification, citation anomalies, metadata checks)
 - **Reviewer selection agent** — ranked shortlist with conflict-of-interest detection
 
