@@ -83,8 +83,15 @@ export default async function JournalLandingPage({
     <div className="min-h-screen bg-white dark:bg-zinc-950">
       {/* Header */}
       <header className="border-b border-zinc-200 dark:border-zinc-800">
-        <div className="max-w-screen-lg mx-auto px-6 py-4 flex items-center justify-between gap-4">
+        <div className="max-w-screen-xl mx-auto px-6 py-4 flex items-center justify-between gap-4">
           <div className="flex items-center gap-4">
+            <Link
+              href="/"
+              className="font-semibold text-zinc-900 dark:text-zinc-100 tracking-tight text-sm"
+            >
+              Agentic<em style={{ color: "#4f46e5", fontStyle: "italic" }}>ES</em>
+            </Link>
+            <span className="text-zinc-300 dark:text-zinc-700">·</span>
             {settings.logo_url ? (
               <img
                 src={settings.logo_url}
@@ -123,7 +130,7 @@ export default async function JournalLandingPage({
         </div>
       </header>
 
-      <div className="max-w-screen-lg mx-auto px-6">
+      <div className="max-w-screen-xl mx-auto px-6">
         {/* Hero */}
         <section className="py-16 border-b border-zinc-100 dark:border-zinc-900">
           <div className="max-w-2xl">

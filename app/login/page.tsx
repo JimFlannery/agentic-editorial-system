@@ -67,7 +67,7 @@ function AuthForm() {
             {mode === "signin" ? "Sign in" : "Create account"}
           </h1>
           <p className="text-sm text-zinc-500 dark:text-zinc-400 mt-1">
-            Agentic Editorial System
+            Agentic<em style={{ color: "#4f46e5", fontStyle: "italic" }}>ES</em>
             {journalAcronym && (
               <> &middot; <span className="font-medium">{journalAcronym}</span></>
             )}

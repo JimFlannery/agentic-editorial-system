@@ -22,11 +22,20 @@ As Editor-in-Chief, you have oversight of the entire editorial process for your 
 
 Navigate to `/journal/[acronym]/editorial/editor-in-chief`.
 
-Your dashboard shows:
-- **Escalations awaiting action** — both editor-initiated and automated
-- **Recent decisions** — decisions made across all editors in the last 30 days
-- **Stalled manuscripts** — manuscripts with no activity in more than [configurable] days
-- **At-a-glance metrics** — submission volume, average time to first decision, acceptance rate
+Your dashboard shows four stat cards at the top:
+
+| Card | What it shows |
+|---|---|
+| **Checklist Queue** | Manuscripts awaiting admin checklist review |
+| **Under Review** | Manuscripts currently with reviewers |
+| **Awaiting Revision** | Manuscripts where a revision has been requested |
+| **Stalled** | Manuscripts with no activity in the last 20+ days |
+
+Below the stat cards:
+
+- **Monthly metrics** — submissions this month and average days to decision, so you can track throughput at a glance
+- **Stalled manuscripts** — a list of specific manuscripts with no recent activity; click any to open the detail page and investigate
+- **Recent decisions** — the most recent accept/reject/revision decisions across all editors, with links to each manuscript
 
 ---
 

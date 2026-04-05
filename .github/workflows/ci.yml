@@ -1,0 +1,103 @@
+name: CI
+
+on:
+  pull_request:
+    branches: [main]
+  push:
+    branches: [main]
+
+jobs:
+  test:
+    name: E2E & Smoke Tests
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+
+    services:
+      postgres:
+        image: apache/age:latest
+        env:
+          POSTGRES_USER: ems
+          POSTGRES_PASSWORD: ems
+          POSTGRES_DB: ems_db
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd "pg_isready -U ems -d ems_db"
+          --health-interval 5s
+          --health-timeout 5s
+          --health-retries 10
+
+    env:
+      DATABASE_URL: postgresql://ems:ems@localhost:5432/ems_db
+      BETTER_AUTH_SECRET: ci-test-secret-do-not-use-in-production
+      NEXTAUTH_URL: http://localhost:3000
+      # Stub S3 — no file uploads in tests
+      S3_BUCKET: test-bucket
+      S3_REGION: us-east-1
+      S3_ACCESS_KEY_ID: test
+      S3_SECRET_ACCESS_KEY: test
+      S3_ENDPOINT: http://localhost:9000
+      # Stub email — no outbound mail in CI
+      SMTP_HOST: localhost
+      SMTP_PORT: 25
+      SMTP_FROM: ci@test.example.com
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: npm
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Install Playwright browsers
+        run: npx playwright install chromium --with-deps
+
+      - name: Run database migrations
+        run: |
+          # Wait for Postgres to be fully ready
+          until psql "$DATABASE_URL" -c '\q' 2>/dev/null; do sleep 1; done
+          bash db/migrate.sh
+
+      - name: Seed TEST journal
+        run: psql "$DATABASE_URL" -f db/seed_test.sql
+
+      - name: Build Next.js app
+        run: npm run build
+
+      - name: Start app in background
+        run: |
+          npm run start &
+          # Wait for the app to be ready
+          until curl -sf http://localhost:3000 > /dev/null; do sleep 2; done
+        env:
+          PORT: 3000
+
+      - name: Run Playwright E2E tests
+        run: npx playwright test
+        env:
+          TEST_BASE_URL: http://localhost:3000
+
+      - name: Run Puppeteer smoke tests
+        run: npx jest --config jest.config.ts smoke --forceExit
+        env:
+          TEST_BASE_URL: http://localhost:3000
+
+      - name: Upload Playwright report
+        uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: playwright-report
+          path: playwright-report/
+          retention-days: 14
+
+      - name: Upload Playwright traces
+        uses: actions/upload-artifact@v4
+        if: failure()
+        with:
+          name: playwright-traces
+          path: test-results/
+          retention-days: 7

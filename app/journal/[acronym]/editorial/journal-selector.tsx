@@ -21,7 +21,7 @@ export function JournalSelector({ journals, current }: { journals: Journal[]; cu
 
   return (
     <Select value={current} onValueChange={(value) => { if (value) router.push(`/journal/${value}/editorial`) }}>
-      <SelectTrigger className="w-52 h-7 text-xs border-zinc-200 dark:border-zinc-700 bg-transparent">
+      <SelectTrigger className="w-96 h-7 text-xs border-zinc-200 dark:border-zinc-700 bg-transparent">
         <SelectValue placeholder="Select journal…">
           {currentJournal && `${currentJournal.acronym} — ${currentJournal.name}`}
         </SelectValue>

@@ -4,6 +4,7 @@ import { sql } from "@/lib/graph"
 import ChecklistPanel from "./checklist"
 import ReviewerPanel from "./reviewer-panel"
 import DecisionPanel from "./decision-panel"
+import { ActivityTimeline, type TimelineEvent } from "./activity-timeline"
 import { getManuscriptReviewers, getSubmittedReviews } from "./actions"
 
 interface ManuscriptRow {
@@ -19,6 +20,16 @@ interface ManuscriptRow {
   author_name: string
   author_email: string
   author_orcid: string | null
+  file_key: string | null
+  file_name: string | null
+}
+
+interface ManuscriptAuthor {
+  person_id: string
+  full_name: string
+  email: string
+  orcid: string | null
+  is_corresponding: boolean
 }
 
 interface ChecklistEvent {
@@ -42,6 +53,8 @@ async function getManuscript(id: string): Promise<ManuscriptRow | null> {
       m.manuscript_type,
       m.status,
       m.submitted_at::text AS submitted_at,
+      m.file_key,
+      m.file_name,
       j.id         AS journal_id,
       j.name       AS journal_name,
       p.full_name  AS author_name,
@@ -53,6 +66,21 @@ async function getManuscript(id: string): Promise<ManuscriptRow | null> {
     WHERE m.id = $1
   `, [id])
   return rows[0] ?? null
+}
+
+async function getAuthors(manuscriptId: string): Promise<ManuscriptAuthor[]> {
+  return sql<ManuscriptAuthor>(`
+    SELECT
+      p.id        AS person_id,
+      p.full_name,
+      p.email,
+      p.orcid,
+      ma.is_corresponding
+    FROM manuscript.manuscript_authors ma
+    JOIN manuscript.people p ON p.id = ma.person_id
+    WHERE ma.manuscript_id = $1
+    ORDER BY ma.display_order
+  `, [manuscriptId])
 }
 
 async function getLatestChecklist(manuscriptId: string): Promise<ChecklistEvent | null> {
@@ -79,11 +107,24 @@ export default async function ManuscriptDetailPage({
   params: Promise<{ acronym: string; id: string }>
 }) {
   const { acronym, id } = await params
-  const [manuscript, checklist, reviewers, submittedReviews] = await Promise.all([
+  const [manuscript, checklist, reviewers, submittedReviews, authors, timelineEvents] = await Promise.all([
     getManuscript(id),
     getLatestChecklist(id),
     getManuscriptReviewers(id),
     getSubmittedReviews(id),
+    getAuthors(id),
+    sql<TimelineEvent>(`
+      SELECT
+        e.event_type,
+        e.occurred_at::text AS occurred_at,
+        p.full_name         AS actor_name,
+        e.actor_type,
+        e.payload
+      FROM history.events e
+      LEFT JOIN manuscript.people p ON p.id = e.actor_id
+      WHERE e.manuscript_id = $1
+      ORDER BY e.occurred_at ASC
+    `, [id]),
   ])
 
   if (!manuscript) notFound()
@@ -125,17 +166,55 @@ export default async function ManuscriptDetailPage({
               <p className="text-zinc-700 dark:text-zinc-300">{manuscript.journal_name}</p>
             </div>
             <div>
-              <p className="text-xs font-medium text-zinc-400 uppercase tracking-wider mb-0.5">Corresponding Author</p>
-              <p className="text-zinc-700 dark:text-zinc-300">{manuscript.author_name}</p>
-              <p className="text-zinc-400 text-xs">{manuscript.author_email}</p>
-              {manuscript.author_orcid && (
-                <p className="text-zinc-400 text-xs">ORCID: {manuscript.author_orcid}</p>
+              <p className="text-xs font-medium text-zinc-400 uppercase tracking-wider mb-1.5">
+                Authors <span className="normal-case font-normal">({authors.length || 1})</span>
+              </p>
+              {authors.length > 0 ? (
+                <ul className="space-y-2">
+                  {authors.map((a) => (
+                    <li key={a.person_id}>
+                      <div className="flex items-center gap-1.5 flex-wrap">
+                        <span className="text-sm text-zinc-700 dark:text-zinc-300">{a.full_name}</span>
+                        {a.is_corresponding && (
+                          <span className="text-xs px-1.5 py-0.5 rounded bg-blue-50 dark:bg-blue-950 text-blue-600 dark:text-blue-400 border border-blue-200 dark:border-blue-800">
+                            Corresponding
+                          </span>
+                        )}
+                      </div>
+                      <p className="text-xs text-zinc-400">{a.email}</p>
+                      {a.orcid && <p className="text-xs text-zinc-400">ORCID: {a.orcid}</p>}
+                    </li>
+                  ))}
+                </ul>
+              ) : (
+                // Fallback for manuscripts without author list rows (pre-migration)
+                <>
+                  <p className="text-zinc-700 dark:text-zinc-300">{manuscript.author_name}</p>
+                  <p className="text-zinc-400 text-xs">{manuscript.author_email}</p>
+                  {manuscript.author_orcid && (
+                    <p className="text-zinc-400 text-xs">ORCID: {manuscript.author_orcid}</p>
+                  )}
+                </>
               )}
             </div>
             <div>
               <p className="text-xs font-medium text-zinc-400 uppercase tracking-wider mb-0.5">Submitted</p>
               <p className="text-zinc-700 dark:text-zinc-300">{formatDate(manuscript.submitted_at)}</p>
             </div>
+            {manuscript.file_key && (
+              <div>
+                <p className="text-xs font-medium text-zinc-400 uppercase tracking-wider mb-1">Manuscript File</p>
+                <a
+                  href={`/api/manuscript/${manuscript.id}/download`}
+                  className="inline-flex items-center gap-1.5 text-xs font-medium text-blue-600 dark:text-blue-400 hover:underline"
+                >
+                  <svg xmlns="http://www.w3.org/2000/svg" className="h-3.5 w-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+                    <path strokeLinecap="round" strokeLinejoin="round" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4" />
+                  </svg>
+                  {manuscript.file_name ?? "Download"}
+                </a>
+              </div>
+            )}
           </div>
 
           {manuscript.abstract && (
@@ -178,6 +257,8 @@ export default async function ManuscriptDetailPage({
           reviews={submittedReviews}
         />
       )}
+
+      <ActivityTimeline events={timelineEvents} />
     </div>
   )
 }

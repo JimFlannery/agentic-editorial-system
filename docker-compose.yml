@@ -34,6 +34,44 @@ services:
       timeout: 5s
       retries: 5
 
+  app:
+    # Pre-built image from GitHub Container Registry.
+    # To build locally instead, replace 'image:' with:
+    #   build: .
+    image: ghcr.io/YOUR_ORG/oss-editorial-management-system:latest
+    container_name: ems-app
+    ports:
+      - "3000:3000"
+    environment:
+      DATABASE_URL: postgresql://${POSTGRES_USER:-ems}:${POSTGRES_PASSWORD:-ems_password}@postgres-age:5432/${POSTGRES_DB:-ems_db}
+      ANTHROPIC_API_KEY: ${ANTHROPIC_API_KEY}
+      BETTER_AUTH_SECRET: ${BETTER_AUTH_SECRET}
+      BETTER_AUTH_URL: ${BETTER_AUTH_URL:-http://localhost:3000}
+      NEXT_PUBLIC_APP_URL: ${NEXT_PUBLIC_APP_URL:-http://localhost:3000}
+      NEXT_PUBLIC_BASE_URL: ${NEXT_PUBLIC_BASE_URL:-http://localhost:3000}
+      S3_ENDPOINT: ${S3_ENDPOINT:-http://minio:9000}
+      S3_ACCESS_KEY_ID: ${S3_ACCESS_KEY_ID:-ems_minio}
+      S3_SECRET_ACCESS_KEY: ${S3_SECRET_ACCESS_KEY:-ems_minio_password}
+      S3_BUCKET: ${S3_BUCKET:-ems-manuscripts}
+      S3_REGION: ${S3_REGION:-us-east-1}
+      SMTP_HOST: ${SMTP_HOST:-}
+      SMTP_PORT: ${SMTP_PORT:-465}
+      SMTP_USER: ${SMTP_USER:-}
+      SMTP_PASS: ${SMTP_PASS:-}
+      SMTP_FROM: ${SMTP_FROM:-}
+    depends_on:
+      postgres-age:
+        condition: service_healthy
+      minio:
+        condition: service_healthy
+    healthcheck:
+      test: ["CMD-SHELL", "wget -qO- http://localhost:3000/ > /dev/null 2>&1 || exit 1"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 40s
+    restart: unless-stopped
+
 volumes:
   postgres_data:
   minio_data:

@@ -44,28 +44,30 @@ If you are unsure whether you have the right expertise or a potential conflict o
 
 After accepting, log in and navigate to your reviewer portal at `/journal/[acronym]/reviewer`.
 
-<!--
-TODO: Document the manuscript access flow once the reviewer portal is built.
-Cover:
-- Downloading the manuscript files (PDF, Word, supplementary materials)
-- Any blinding arrangements (single-blind, double-blind depending on journal policy)
-- How long you have access to the files
--->
+Your dashboard shows all active assignments with status badges (Awaiting Response, In Progress, Submitted) and due dates. Click an assignment to open the manuscript detail page, where you can:
+
+- Read the manuscript title and abstract
+- Download the manuscript file and any supplementary materials
+- See the review deadline and your current invitation status
+
+Blinding arrangements (single-blind or double-blind) are per journal policy — check the invitation email or contact the editorial office if you are unsure whether you should know the authors' identities.
 
 ---
 
 ## 4. Submitting your review
 
-<!--
-TODO: Document the review submission form once built.
-Cover:
-- Recommendation (Accept / Minor Revision / Major Revision / Reject)
-- Confidential comments to the editor (not seen by the author)
-- Comments to the author
-- File attachments (annotated PDF, supplementary notes)
-- Confirming no conflict of interest
-- What happens after submission (confirmation email, review status update)
--->
+From the manuscript detail page, click **Submit Review** to open the review form.
+
+The form contains:
+
+| Field | Notes |
+|---|---|
+| **Recommendation** | Accept / Minor Revision / Major Revision / Reject |
+| **Comments to the author** | Your detailed review — visible to the author after the decision is sent |
+| **Confidential comments to the editor** | Notes for editorial use only — not shared with the author |
+| **Conflict of interest confirmation** | Required — confirm you have no undisclosed conflict |
+
+Click **Submit Review** when complete. Your assignment status updates to **Submitted** and the editorial team is notified. You will receive a confirmation email. Once submitted, reviews cannot be edited — contact the editorial office if you need to make a correction.
 
 ---
 

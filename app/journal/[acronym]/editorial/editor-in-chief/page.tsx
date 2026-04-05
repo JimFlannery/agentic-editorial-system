@@ -101,15 +101,32 @@ async function getRecentDecisions(journalId: string): Promise<RecentDecision[]> 
 }
 
 async function getMonthlyMetrics(journalId: string): Promise<MonthlyMetric> {
-  const rows = await sql<MonthlyMetric>(`
-    SELECT
-      COUNT(*)::text AS submissions_this_month,
-      NULL::text     AS avg_days_to_decision
-    FROM manuscript.manuscripts
-    WHERE journal_id = $1
-      AND submitted_at >= date_trunc('month', now())
-  `, [journalId])
-  return rows[0] ?? { submissions_this_month: "0", avg_days_to_decision: null }
+  const [subRows, avgRows] = await Promise.all([
+    sql<{ submissions_this_month: string }>(`
+      SELECT COUNT(*)::text AS submissions_this_month
+      FROM manuscript.manuscripts
+      WHERE journal_id = $1
+        AND submitted_at >= date_trunc('month', now())
+    `, [journalId]),
+    sql<{ avg_days: string | null }>(`
+      SELECT ROUND(
+        AVG(
+          EXTRACT(EPOCH FROM (d.occurred_at - s.occurred_at)) / 86400
+        )
+      )::text AS avg_days
+      FROM history.events d
+      JOIN history.events s
+        ON  s.manuscript_id = d.manuscript_id
+        AND s.event_type = 'manuscript.submitted'
+      JOIN manuscript.manuscripts m ON m.id = d.manuscript_id
+      WHERE d.event_type = 'decision.sent'
+        AND m.journal_id = $1
+    `, [journalId]),
+  ])
+  return {
+    submissions_this_month: subRows[0]?.submissions_this_month ?? "0",
+    avg_days_to_decision:   avgRows[0]?.avg_days ?? null,
+  }
 }
 
 const statusLabel: Record<string, string> = {

@@ -34,14 +34,25 @@ export async function submitManuscript(acronym: string, formData: FormData) {
   if (!manuscript_type) throw new Error("Manuscript type is required")
   if (!manuscriptFile || manuscriptFile.size === 0) throw new Error("Manuscript file is required")
 
+  // Parse co-authors
+  const coauthorCount = parseInt(formData.get("coauthor_count") as string) || 0
+  const coauthors: Array<{ name: string; email: string; orcid: string | null }> = []
+  for (let i = 0; i < coauthorCount; i++) {
+    const name  = (formData.get(`coauthor_name_${i}`) as string)?.trim()
+    const email = (formData.get(`coauthor_email_${i}`) as string)?.trim()
+    const orcid = (formData.get(`coauthor_orcid_${i}`) as string)?.trim() || null
+    if (name && email) coauthors.push({ name, email, orcid })
+  }
+
   // Gather dynamic field values into payload JSONB
   const payload: Record<string, unknown> = {}
   for (const [key, value] of formData.entries()) {
-    if (["title", "abstract", "manuscript_type", "manuscript_file"].includes(key)) continue
+    if (["title", "abstract", "manuscript_type", "manuscript_file", "coauthor_count"].includes(key)) continue
+    if (key.startsWith("coauthor_")) continue
     payload[key] = value === "on" ? true : value
   }
 
-  // Create manuscript record first to get the ID for the storage key
+  // Create manuscript record
   const manuscriptRows = await sql<{ id: string }>(
     `INSERT INTO manuscript.manuscripts
        (journal_id, title, abstract, manuscript_type, submitted_by, status)
@@ -51,11 +62,10 @@ export async function submitManuscript(acronym: string, formData: FormData) {
   )
   const manuscript = manuscriptRows[0]
 
-  // Upload manuscript file to S3/MinIO
+  // Upload manuscript file
   const key = manuscriptKey(journal.id, manuscript.id, manuscriptFile.name)
   await uploadFile(key, manuscriptFile)
 
-  // Store file reference on the manuscript record
   await sql(
     `UPDATE manuscript.manuscripts
      SET file_key = $1, file_name = $2, file_size = $3
@@ -63,11 +73,45 @@ export async function submitManuscript(acronym: string, formData: FormData) {
     [key, manuscriptFile.name, manuscriptFile.size, manuscript.id]
   )
 
+  // Insert corresponding author into manuscript_authors
+  await sql(
+    `INSERT INTO manuscript.manuscript_authors
+       (manuscript_id, person_id, is_corresponding, display_order)
+     VALUES ($1, $2, true, 0)
+     ON CONFLICT (manuscript_id, person_id) DO NOTHING`,
+    [manuscript.id, person.id]
+  )
+
+  // Upsert co-authors and add to manuscript_authors
+  for (let i = 0; i < coauthors.length; i++) {
+    const { name, email, orcid } = coauthors[i]
+
+    // Upsert person by email + journal — create if not already in the system
+    const coauthorRows = await sql<{ id: string }>(
+      `INSERT INTO manuscript.people (journal_id, full_name, email, orcid)
+       VALUES ($1, $2, $3, $4)
+       ON CONFLICT (journal_id, email)
+       DO UPDATE SET full_name = EXCLUDED.full_name,
+                     orcid = COALESCE(EXCLUDED.orcid, manuscript.people.orcid)
+       RETURNING id`,
+      [journal.id, name, email, orcid]
+    )
+    const coauthor = coauthorRows[0]
+
+    await sql(
+      `INSERT INTO manuscript.manuscript_authors
+         (manuscript_id, person_id, is_corresponding, display_order)
+       VALUES ($1, $2, false, $3)
+       ON CONFLICT (manuscript_id, person_id) DO NOTHING`,
+      [manuscript.id, coauthor.id, i + 1]
+    )
+  }
+
   // Record submission event
   await sql(
     `INSERT INTO history.events (journal_id, manuscript_id, event_type, actor_id, actor_type, payload)
      VALUES ($1, $2, 'manuscript.submitted', $3, 'person', $4)`,
-    [journal.id, manuscript.id, person.id, JSON.stringify({ ...payload, file_key: key })]
+    [journal.id, manuscript.id, person.id, JSON.stringify({ ...payload, file_key: key, coauthor_count: coauthors.length })]
   )
 
   redirect(`/journal/${acronym}/author`)

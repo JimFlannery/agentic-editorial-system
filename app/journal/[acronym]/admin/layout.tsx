@@ -4,6 +4,7 @@ import { sql } from "@/lib/graph"
 import { cn } from "@/lib/utils"
 import { requireRole } from "@/lib/auth-helpers"
 import { UserMenu } from "@/components/user-menu"
+import { HelpPanel } from "@/components/help-panel"
 import { JournalSelector } from "./journal-selector"
 
 interface Journal {
@@ -46,6 +47,7 @@ export default async function JournalAcronymLayout({
     { href: base,                          label: "Dashboard" },
     { href: `${base}/manuscript-types`,    label: "Manuscript Types" },
     { href: `${base}/form-fields`,         label: "Form Fields" },
+    { href: `${base}/sections`,            label: "Sections" },
     { href: `${base}/workflows`,           label: "Workflows" },
     { href: `${base}/workflow`,            label: "Workflow Config" },
     { href: `${base}/email-templates`,     label: "Email Templates" },
@@ -62,7 +64,7 @@ export default async function JournalAcronymLayout({
             href="/"
             className="font-semibold text-zinc-900 dark:text-zinc-100 tracking-tight text-sm"
           >
-            Agentic Editorial System
+            Agentic<em style={{ color: "#4f46e5", fontStyle: "italic" }}>ES</em>
           </Link>
           <span className="text-zinc-300 dark:text-zinc-700">·</span>
           <JournalSelector journals={allJournals} current={journal.acronym} />
@@ -78,6 +80,7 @@ export default async function JournalAcronymLayout({
           >
             System Admin
           </Link>
+          <HelpPanel />
           <UserMenu name={user.name} email={user.email} />
         </header>
 

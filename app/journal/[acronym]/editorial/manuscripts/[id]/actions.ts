@@ -5,6 +5,7 @@ import { sql } from "@/lib/graph"
 import { auth } from "@/lib/auth"
 import { revalidatePath } from "next/cache"
 import { redirect } from "next/navigation"
+import { sendEmail, reviewerInvitationEmail, decisionEmail } from "@/lib/email"
 
 export async function passToEic(acronym: string, manuscriptId: string, journalId: string) {
   await sql(
@@ -160,6 +161,37 @@ export async function inviteReviewer(
     VALUES ($1, $2, 'reviewer.invited', $3, 'person', $4)
   `, [journalId, manuscriptId, actor.id, JSON.stringify({ invited_person_id: personId, due_at: dueAt })])
 
+  // Send invitation email
+  const emailRows = await sql<{
+    reviewer_name: string
+    reviewer_email: string
+    manuscript_title: string
+    journal_name: string
+  }>(`
+    SELECT
+      p.full_name   AS reviewer_name,
+      p.email       AS reviewer_email,
+      m.title       AS manuscript_title,
+      j.name        AS journal_name
+    FROM manuscript.people p
+    JOIN manuscript.manuscripts m ON m.id = $2
+    JOIN manuscript.journals    j ON j.id = $3
+    WHERE p.id = $1
+  `, [personId, manuscriptId, journalId])
+
+  const emailData = emailRows[0]
+  if (emailData) {
+    const baseUrl = process.env.NEXT_PUBLIC_BASE_URL ?? ""
+    const { subject, html } = reviewerInvitationEmail({
+      reviewer_name:    emailData.reviewer_name,
+      manuscript_title: emailData.manuscript_title,
+      journal_name:     emailData.journal_name,
+      due_date:         new Date(dueAt).toLocaleDateString("en-US", { month: "long", day: "numeric", year: "numeric" }),
+      review_url:       `${baseUrl}/journal/${acronym}/reviewer/manuscripts/${manuscriptId}`,
+    })
+    await sendEmail({ to: emailData.reviewer_email, subject, html })
+  }
+
   revalidatePath(`/journal/${acronym}/editorial/manuscripts/${manuscriptId}`)
 }
 
@@ -226,6 +258,13 @@ const DECISION_STATUS_MAP: Record<string, string> = {
   reject:          "rejected",
 }
 
+const DECISION_LABEL_MAP: Record<string, string> = {
+  accept:         "Accept",
+  minor_revision: "Minor Revision",
+  major_revision: "Major Revision",
+  reject:         "Reject",
+}
+
 export async function sendDecision(
   acronym: string,
   manuscriptId: string,
@@ -261,6 +300,36 @@ export async function sendDecision(
     actor.id,
     JSON.stringify({ decision, letter }),
   ])
+
+  // Send decision email to author
+  const authorRows = await sql<{
+    author_name: string
+    author_email: string
+    manuscript_title: string
+    journal_name: string
+  }>(`
+    SELECT
+      p.full_name AS author_name,
+      p.email     AS author_email,
+      m.title     AS manuscript_title,
+      j.name      AS journal_name
+    FROM manuscript.manuscripts m
+    JOIN manuscript.people  p ON p.id = m.submitted_by
+    JOIN manuscript.journals j ON j.id = m.journal_id
+    WHERE m.id = $1
+  `, [manuscriptId])
+
+  const authorData = authorRows[0]
+  if (authorData) {
+    const { subject, html } = decisionEmail({
+      author_name:      authorData.author_name,
+      manuscript_title: authorData.manuscript_title,
+      journal_name:     authorData.journal_name,
+      decision_label:   DECISION_LABEL_MAP[decision] ?? decision,
+      letter,
+    })
+    await sendEmail({ to: authorData.author_email, subject, html })
+  }
 
   revalidatePath(`/journal/${acronym}/editorial/manuscripts/${manuscriptId}`)
   redirect(`/journal/${acronym}/editorial/editor`)

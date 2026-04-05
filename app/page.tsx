@@ -63,7 +63,7 @@ export default async function Home() {
       <header className="border-b border-zinc-200 dark:border-zinc-800">
         <div className="max-w-screen-xl mx-auto px-6 py-3 flex items-center gap-4">
           <span className="font-semibold text-zinc-900 dark:text-zinc-100 tracking-tight text-sm">
-            Agentic Editorial System
+            Agentic<em style={{ color: "#4f46e5", fontStyle: "italic" }}>ES</em>
           </span>
           <nav className="ml-auto flex items-center gap-1">
             <Link
@@ -80,6 +80,14 @@ export default async function Home() {
       <div className="max-w-screen-xl mx-auto px-6">
         {/* Hero */}
         <section className="py-20 max-w-2xl">
+          <div className="flex items-baseline gap-4 mb-6">
+            <span className="text-5xl font-bold tracking-tight text-zinc-900 dark:text-zinc-100">
+              Agentic<em style={{ color: "#4f46e5", fontStyle: "italic" }}>ES</em>
+            </span>
+            <span className="text-lg text-zinc-500 dark:text-zinc-400">
+              The Agentic Editorial System
+            </span>
+          </div>
           <p className="text-xs font-medium text-zinc-400 uppercase tracking-widest mb-4">
             Open source · AGPLv3
           </p>
@@ -148,7 +156,7 @@ export default async function Home() {
         <div className="border-t border-zinc-100 dark:border-zinc-900" />
 
         <footer className="py-8 flex items-center justify-between text-xs text-zinc-400 dark:text-zinc-600">
-          <span>Agentic Editorial System — AGPLv3</span>
+          <span>Agentic<em style={{ color: "#4f46e5", fontStyle: "italic" }}>ES</em> — AGPLv3</span>
           <a
             href="https://github.com/anthropics/claude-code"
             className="hover:text-zinc-600 dark:hover:text-zinc-400 transition-colors"

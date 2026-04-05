@@ -8,6 +8,12 @@ interface PersonRow {
   orcid: string | null
   journal_id: string
   roles: string | null
+  role_sections: Record<string, string | null> | null  // role -> section_id
+}
+
+interface Section {
+  id: string
+  name: string
 }
 
 export default async function UsersPage({
@@ -23,20 +29,30 @@ export default async function UsersPage({
   )
   const journal = journalRows[0]
 
-  const people = await sql<PersonRow>(`
-    SELECT
-      p.id,
-      p.full_name,
-      p.email,
-      p.orcid,
-      p.journal_id,
-      STRING_AGG(pr.role::text, ', ' ORDER BY pr.role::text) AS roles
-    FROM manuscript.people p
-    LEFT JOIN manuscript.person_roles pr ON pr.person_id = p.id AND pr.journal_id = p.journal_id
-    WHERE p.journal_id = $1
-    GROUP BY p.id, p.full_name, p.email, p.orcid, p.journal_id
-    ORDER BY p.full_name
-  `, [journal.id])
+  const [people, sections] = await Promise.all([
+    sql<PersonRow>(`
+      SELECT
+        p.id,
+        p.full_name,
+        p.email,
+        p.orcid,
+        p.journal_id,
+        STRING_AGG(pr.role::text, ', ' ORDER BY pr.role::text) AS roles,
+        JSONB_OBJECT_AGG(pr.role::text, pr.section_id)
+          FILTER (WHERE pr.role IS NOT NULL) AS role_sections
+      FROM manuscript.people p
+      LEFT JOIN manuscript.person_roles pr ON pr.person_id = p.id AND pr.journal_id = p.journal_id
+      WHERE p.journal_id = $1
+      GROUP BY p.id, p.full_name, p.email, p.orcid, p.journal_id
+      ORDER BY p.full_name
+    `, [journal.id]),
+    sql<Section>(`
+      SELECT id, name
+      FROM manuscript.journal_sections
+      WHERE journal_id = $1 AND active = true
+      ORDER BY display_order, name
+    `, [journal.id]),
+  ])
 
   return (
     <div>
@@ -47,7 +63,7 @@ export default async function UsersPage({
             {people.length} person{people.length !== 1 ? "s" : ""} in {journal.name}
           </p>
         </div>
-        <AddUserDialog journalId={journal.id} />
+        <AddUserDialog journalId={journal.id} sections={sections} />
       </div>
 
       {people.length === 0 ? (
@@ -75,14 +91,23 @@ export default async function UsersPage({
                   <td className="px-4 py-3">
                     <div className="flex flex-wrap gap-1">
                       {p.roles
-                        ? p.roles.split(", ").map((role) => (
-                            <span
-                              key={role}
-                              className="inline-block rounded-full bg-zinc-100 dark:bg-zinc-800 text-zinc-600 dark:text-zinc-400 text-xs px-2 py-0.5"
-                            >
-                              {role.replace(/_/g, " ")}
-                            </span>
-                          ))
+                        ? p.roles.split(", ").map((role) => {
+                            const sectionId = p.role_sections?.[role]
+                            const sectionName = sectionId
+                              ? sections.find((s) => s.id === sectionId)?.name
+                              : null
+                            return (
+                              <span
+                                key={role}
+                                className="inline-flex items-center gap-1 rounded-full bg-zinc-100 dark:bg-zinc-800 text-zinc-600 dark:text-zinc-400 text-xs px-2 py-0.5"
+                              >
+                                {role.replace(/_/g, " ")}
+                                {sectionName && (
+                                  <span className="text-zinc-400 dark:text-zinc-500">· {sectionName}</span>
+                                )}
+                              </span>
+                            )
+                          })
                         : <span className="text-zinc-300 dark:text-zinc-600">—</span>
                       }
                     </div>
@@ -91,7 +116,7 @@ export default async function UsersPage({
                     {p.orcid ?? "—"}
                   </td>
                   <td className="px-4 py-3 text-right">
-                    <AddUserDialog journalId={journal.id} person={p} />
+                    <AddUserDialog journalId={journal.id} person={p} sections={sections} />
                   </td>
                 </tr>
               ))}

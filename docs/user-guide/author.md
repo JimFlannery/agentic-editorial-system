@@ -31,49 +31,47 @@ Cover:
 
 ## 2. Submitting a manuscript
 
-Navigate to your journal's author portal at `/journal/[acronym]/author`.
+Navigate to your journal's author portal at `/journal/[acronym]/author` and click **New Submission**.
 
-<!--
-TODO: Document the full submission flow once the author portal is built.
-Cover:
-- Selecting a manuscript type (and what to do if unsure)
-- Required fields: title, abstract, authors, affiliations
-- File uploads: main manuscript, figures, supplementary materials
-- Suggested reviewers (if the journal allows it)
-- CRediT contributor role assignment
-- Ethics and conflict-of-interest declarations
-- The submission checklist (what the system checks automatically vs. what the AE reviews)
-- Confirmation email after submission
--->
+1. **Select a manuscript type** — choose the type that best matches your submission (e.g. Research Article, Review, Letter). If you are unsure, contact the editorial office.
+2. **Enter the title and abstract** — these are required fields.
+3. **Add co-authors** — enter each co-author's name, email address, and institution. You can add as many co-authors as needed. CRediT contributor roles can be assigned to each author at this step if your journal requires them.
+4. **Upload the manuscript file** — PDF, Word (.docx), or LaTeX (.zip) are accepted. Upload one file as the main manuscript; supplementary materials can be included in the same upload or added separately.
+5. **Submit** — click **Submit Manuscript**. Your submission will appear in your author portal immediately with status **Submitted**.
+
+You will receive a confirmation email after submission. If you do not receive it within a few minutes, check your spam folder or contact the editorial office.
 
 ---
 
 ## 3. Tracking your submission
 
-<!--
-TODO: Document the submission status tracking view once built.
-Cover the status sequence:
-- Submitted → Under Admin Review (AE checklist)
-- Under Admin Review → With Editor (passed checklist)
-- With Editor → Under Review (reviewers invited)
-- Under Review → Decision Pending (all reviews received)
-- Decision Pending → Decision Sent
-- Decision outcomes: Accept, Minor Revision, Major Revision, Reject, Reject with Transfer
--->
+Your author portal (`/journal/[acronym]/author`) lists all your submissions with their current status. Click any manuscript to open its detail page, which shows full metadata and an activity timeline of every action taken on the manuscript.
+
+| Status | What it means |
+|---|---|
+| **Submitted** | Received — awaiting admin checklist review |
+| **Under Review** | Passed the checklist and is with reviewers |
+| **Revision Requested** | A decision has been sent — see your email for reviewer comments |
+| **Accepted** | Accepted for publication |
+| **Rejected** | Not accepted — see your decision email for the full explanation |
+
+The activity timeline on the manuscript detail page shows the date and description of each step. You will also receive email notifications at key transitions.
 
 ---
 
 ## 4. Responding to a revision request
 
-<!--
-TODO: Document the revision submission flow once built.
-Cover:
-- Receiving the decision email with reviewer comments
-- Preparing a response letter
-- Uploading the revised manuscript
-- Highlighting changes (tracked changes vs. clean copy)
-- The revision deadline and what happens if it is missed
--->
+When a revision is requested you will receive a decision email with the editor's comments and, if applicable, the reviewer reports.
+
+To submit your revision:
+
+1. Open the manuscript in your author portal and click **Submit Revision**
+2. Upload the revised manuscript file
+3. Click **Submit** — the editorial team is notified and the manuscript re-enters the editorial workflow
+
+**Prepare a response letter** explaining how you addressed each reviewer comment. Check your journal's policy on whether to include the response letter in the manuscript file or upload it separately.
+
+**Revision deadline:** The deadline is stated in your decision email. If you need an extension, contact the editorial office before the deadline — the system has automated reminders tied to the deadline date.
 
 ---
 

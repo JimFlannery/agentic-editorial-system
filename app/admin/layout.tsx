@@ -30,7 +30,7 @@ export default async function AdminLayout({ children }: { children: React.ReactN
             href="/admin"
             className="font-semibold text-zinc-900 dark:text-zinc-100 tracking-tight text-sm"
           >
-            Agentic Editorial System
+            Agentic<em style={{ color: "#4f46e5", fontStyle: "italic" }}>ES</em>
           </Link>
           <span className="text-zinc-300 dark:text-zinc-700">·</span>
           <span className="text-xs text-zinc-400">Admin</span>

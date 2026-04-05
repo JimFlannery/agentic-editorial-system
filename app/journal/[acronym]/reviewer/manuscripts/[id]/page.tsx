@@ -14,6 +14,8 @@ interface ManuscriptRow {
   journal_id: string
   journal_name: string
   author_name: string
+  file_key: string | null
+  file_name: string | null
 }
 
 interface AssignmentRow {
@@ -78,6 +80,8 @@ export default async function ReviewerManuscriptPage({
         m.abstract,
         m.manuscript_type,
         m.submitted_at::text,
+        m.file_key,
+        m.file_name,
         j.id   AS journal_id,
         j.name AS journal_name,
         p.full_name AS author_name
@@ -166,6 +170,20 @@ export default async function ReviewerManuscriptPage({
               <p className="text-xs font-medium text-zinc-400 uppercase tracking-wider mb-0.5">Invited</p>
               <p className="text-zinc-700 dark:text-zinc-300">{formatDate(assignment.assigned_at)}</p>
             </div>
+            {manuscript.file_key && (
+              <div>
+                <p className="text-xs font-medium text-zinc-400 uppercase tracking-wider mb-1">Manuscript File</p>
+                <a
+                  href={`/api/manuscript/${manuscript.id}/download`}
+                  className="inline-flex items-center gap-1.5 text-xs font-medium text-blue-600 dark:text-blue-400 hover:underline"
+                >
+                  <svg xmlns="http://www.w3.org/2000/svg" className="h-3.5 w-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+                    <path strokeLinecap="round" strokeLinejoin="round" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4" />
+                  </svg>
+                  {manuscript.file_name ?? "Download"}
+                </a>
+              </div>
+            )}
           </div>
 
           {manuscript.abstract && (

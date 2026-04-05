@@ -1,8 +1,8 @@
-# Agentic Editorial System
+# AgenticES — The Agentic Editorial System
 
 An open-source agentic editorial management system for academic and scientific publishing, built on a graph database workflow engine and the TRAINS (Tailwind, React, AI, Next.js, Shadcn) stack. Licensed under [AGPLv3](LICENSE).
 
-> **Status:** Active development — core stack, system admin console, journal admin, AI workflow configuration, troubleshooting, graph visualisation, and multi-journal editorial workspace live
+> **Status:** Active development — full editorial system live including authentication, author portal, reviewer portal, all editorial role dashboards (Assistant Editor, Editor, Editor-in-Chief, Editorial Support), AI-assisted admin checklist, workflow configuration chat, graph visualisation, and multi-journal tenancy. Playwright E2E suite, Puppeteer smoke + screenshot tests, and GitHub Actions CI pipeline in place.
 
 ---
 
@@ -281,10 +281,25 @@ This license was chosen deliberately. Editorial management systems are delivered
 
 ### Infrastructure
 - **Docker Compose stack** — `apache/age` (PostgreSQL + AGE extension) on port 5432, MinIO on ports 9000/9001, both with persistent volumes and healthchecks
-- **Database schemas** — `manuscript` schema (journals, people, roles, manuscripts, manuscript types, assignments), `history` schema (append-only event log), AGE property graph (`ems_graph`)
-- **Migrations** — `db/init.sql` (base schema), `db/002_manuscript_types.sql` (manuscript types table), `db/003_journal_acronym.sql` (journal acronym column — unique, required, URL slug), `db/004_credit.sql` (CRediT contributor roles + `journal_settings` table)
-- **Seed data** — test journal, people with roles, manuscript, graph nodes mirroring relational data (`db/seed.sql`, `db/seed_full.sql`)
+- **Database schemas** — `manuscript` schema (journals, people, roles, manuscripts, manuscript types, assignments, multi-author support), `history` schema (append-only event log), AGE property graph (`ems_graph`)
+- **Migrations** — `db/init.sql` (base schema) through `db/012_better_auth.sql` (auth tables, idempotent); migration tracking via `schema_migrations` table; `db/migrate.sh` is idempotent and skips already-applied migrations
+- **Seed data** — `db/seed_test.sql` — TEST journal with 10 users across all roles, 8 manuscripts in every workflow state; `db/seed.sql` / `db/seed_full.sql` for development
 - **`lib/graph.ts`** — database client with `sql()` for parameterised SQL, `cypher()` for graph queries, `cypherMutate()` for graph writes, and `withTransaction()` for multi-step operations
+- **Object storage** — MinIO for self-hosted; swap to any S3-compatible service via environment variables
+
+### Authentication & Routing
+- **Better Auth** — email/password login, session management, password reset; scrypt-based password hashing; `auth_user_id` FK linking auth users to `manuscript.people`
+- **Role-based routing** — post-login redirect based on editorial role and journal; journal picker for users with roles on multiple journals
+- **`lib/auth-helpers.ts`** — `requireRole()` for server-side access control on all protected pages
+
+### Author Portal (`/journal/[acronym]/author`)
+- **Manuscript list** — paginated list of the author's submissions with status badges; links to per-manuscript detail
+- **Submission form** — title, abstract, manuscript type, multiple co-authors (CRediT roles), file upload to MinIO/S3
+- **Manuscript detail** — full metadata, activity timeline, file download, revision submission
+
+### Reviewer Portal (`/journal/[acronym]/reviewer`)
+- **Assignment dashboard** — stat cards (pending invitations, in progress, completed), full assignment list with due dates and status badges
+- **Manuscript detail** — manuscript title, abstract, invitation status, accept/decline buttons, review submission form
 
 ### System Admin (`/admin`)
 - **Landing page** — cards linking to all system-level sections
@@ -299,7 +314,10 @@ This license was chosen deliberately. Editorial management systems are delivered
 
 ### Editorial Workspace (`/journal/[acronym]/editorial`)
 The day-to-day working area for all editorial roles. Journal selector and role selector in the header. All pages are scoped to the journal identified by acronym in the URL.
-- **Role dashboards** — tailored landing pages for Assistant Editor (with live queue counts), Editor, Editor-in-Chief, and Editorial Support
+- **Assistant Editor dashboard** — live queue counts, checklist intake, reviewer invitation management
+- **Editor dashboard** — reviewer reports, accept/reject/revise decisions
+- **Editor-in-Chief dashboard** — stat cards, stalled manuscripts widget, monthly metrics, recent decisions
+- **Editorial Support dashboard** — author correspondence, administrative tasks
 - **Checklist Queue** — list of submitted manuscripts awaiting admin review, with AI evaluation status badges
 - **Manuscript detail** — full manuscript metadata, AI-powered admin checklist evaluation, override controls, and action buttons (Pass to EIC, Unsubmit, Reject with Transfer)
 
@@ -322,15 +340,18 @@ Configuration workspace, separate from the editorial workflow. Header links back
 
 Confirm-before-commit applies to both modes. A Standard Peer Review workflow (5 steps, 1 gate with `ON_PASS`/`ON_TIMEOUT` branches) has been configured and committed via chat.
 
+### Test Infrastructure
+- **`db/seed_test.sql`** — deterministic TEST journal seed: 10 users (all roles), 8 manuscripts covering every workflow status, reviewer assignments on both accepted and under-review manuscripts
+- **Playwright E2E** (`tests/e2e/`) — auth setup (storageState per role) + author, queue, manuscript-detail, EIC, and reviewer spec files; 28 tests
+- **Puppeteer smoke + screenshot tests** (`tests/puppeteer/`) — 9 smoke tests (all pages HTTP 200) + 7 screenshot captures; `npm run test:puppeteer`
+- **GitHub Actions CI** (`.github/workflows/ci.yml`) — runs on every PR and push to main: migrate, seed TEST, build, Playwright, Puppeteer, upload report artifact
+
 ### Planned (not yet built)
-- **Authentication** (Better Auth) — login/logout, session management, email verification, password reset; `auth_user_id` FK linking Better Auth users to `manuscript.people`
-- **Role-based login routing** — post-login redirect based on editorial role and journal; journal picker for users with multiple journals
-- **Author portal** (`/journal/[acronym]/author`)
-- **Reviewer portal** (`/journal/[acronym]/reviewer`)
-- **Admin-configurable form fields and journal settings** — checklist questions, submission form fields, scalar journal config
-- **CRediT attribution UI** — per-author role selection in the submission form and display on published articles (enabled per journal via `credit_taxonomy_enabled` journal setting)
-- **Research Integrity Screening agent** — per-submission fraud signal report (image forensics, IP anomalies, tortured phrases, reviewer manipulation, AI-generated text, ORCID verification, citation anomalies, metadata checks); signal set configurable per journal via `journal_settings`
-- **Reviewer selection agent**
+- **Admin-configurable form fields** — drag-to-reorder checklist questions and submission form fields per journal (`manuscript.form_fields`)
+- **In-app notification feed** — editorial staff notification panel in the header (manuscript assigned, review submitted, decision sent)
+- **Help bot** — context-aware Claude chat widget available to all roles; answers questions about the system, surfaces relevant documentation, and guides users through unfamiliar workflows without leaving the page
+- **Research Integrity Screening agent** — per-submission fraud signal report (image forensics, IP anomalies, tortured phrases, reviewer manipulation, AI-generated text, ORCID verification, citation anomalies, metadata checks)
+- **Reviewer selection agent** — ranked shortlist with conflict-of-interest detection
 
 ---
 
@@ -341,11 +362,15 @@ Full file tree is in [docs/contributing.md](docs/contributing.md). Key locations
 ```
 ├── proxy.ts                                           # Custom domain → /journal/[acronym] rewrite
 ├── docker-compose.yml                                 # postgres-age + minio services
+├── playwright.config.ts                               # Playwright E2E config — 5 projects, storageState auth
+├── jest.config.ts                                     # Jest config for Puppeteer tests
 ├── app/
 │   ├── globals.css                                    # Tailwind v4 global styles + theme tokens
 │   ├── layout.tsx                                     # Root layout
-│   ├── page.tsx                                       # Platform landing — journal grid
+│   ├── page.tsx                                       # Platform landing — journal grid + features
+│   ├── login/page.tsx                                 # Better Auth login page
 │   ├── api/
+│   │   ├── auth/[...all]/route.ts                     # Better Auth catch-all handler
 │   │   ├── chat/route.ts                              # General Claude streaming chat (no tools)
 │   │   ├── admin/
 │   │   │   ├── workflow-chat/route.ts                 # Workflow config + troubleshooting agent
@@ -367,23 +392,30 @@ Full file tree is in [docs/contributing.md](docs/contributing.md). Key locations
 │       ├── page.tsx                                   # Redirects to first journal (or /admin/journals)
 │       └── [acronym]/
 │           ├── layout.tsx                             # Theming wrapper — injects per-journal CSS vars
-│           ├── page.tsx                               # Redirects to /journal/[acronym]/editorial
-│           ├── author/page.tsx                        # Author portal (placeholder)
-│           ├── reviewer/page.tsx                      # Reviewer portal (placeholder)
+│           ├── page.tsx                               # Journal landing — role center cards
+│           ├── author/
+│           │   ├── page.tsx                           # Author portal — submission list, pagination
+│           │   ├── manuscripts/[id]/page.tsx          # Author manuscript detail + activity timeline
+│           │   ├── submit/page.tsx                    # Submission form — title, abstract, files, co-authors
+│           │   └── journal-selector.tsx               # Author-scoped journal switcher
+│           ├── reviewer/
+│           │   ├── page.tsx                           # Reviewer portal — assignment list, stats
+│           │   ├── manuscripts/[id]/page.tsx          # Reviewer manuscript detail — accept/decline/review
+│           │   └── journal-selector.tsx               # Reviewer-scoped journal switcher
 │           ├── editorial/
 │           │   ├── layout.tsx                         # Editorial workspace shell + journal/role selectors
-│           │   ├── journal-selector.tsx               # Client component — journal switcher dropdown
-│           │   ├── role-selector.tsx                  # Client component — role switcher dropdown
+│           │   ├── journal-selector.tsx               # Journal switcher dropdown
+│           │   ├── role-selector.tsx                  # Role switcher dropdown
 │           │   ├── page.tsx                           # Redirects to role dashboard (post-auth)
-│           │   ├── assistant-editor/page.tsx          # AE dashboard — queue counts, checklist link
-│           │   ├── editor/page.tsx                    # Editor dashboard
-│           │   ├── editor-in-chief/page.tsx           # EIC dashboard
-│           │   ├── editorial-support/page.tsx         # Editorial support dashboard
+│           │   ├── assistant-editor/page.tsx          # AE dashboard — queue counts, checklist intake
+│           │   ├── editor/page.tsx                    # Editor dashboard — decisions, reviewer reports
+│           │   ├── editor-in-chief/page.tsx           # EIC dashboard — stats, stalled, recent decisions
+│           │   ├── editorial-support/page.tsx         # Support dashboard — correspondence, admin tasks
 │           │   ├── queue/page.tsx                     # Checklist queue (shared across roles)
-│           │   └── manuscripts/[id]/                  # Manuscript detail, checklist, actions
+│           │   └── manuscripts/[id]/                  # Manuscript detail, AI checklist, actions
 │           └── admin/                                 # Journal admin — per-journal config
 │               ├── layout.tsx                         # Journal admin shell + journal selector
-│               ├── journal-selector.tsx               # Client component — journal switcher dropdown
+│               ├── journal-selector.tsx               # Journal switcher dropdown
 │               ├── page.tsx                           # Journal admin dashboard
 │               ├── manuscript-types/                  # Per-journal submission types CRUD
 │               ├── workflows/page.tsx                 # This journal's workflow definitions
@@ -397,21 +429,50 @@ Full file tree is in [docs/contributing.md](docs/contributing.md). Key locations
 │   ├── graph-viewer.tsx                               # sigma.js + graphology graph visualisation
 │   ├── journal-grid.tsx                               # Homepage journal cards
 │   ├── journal-picker.tsx                             # Multi-journal picker (post-login)
+│   ├── pagination.tsx                                 # Reusable pagination component
+│   ├── user-menu.tsx                                  # Header user menu (logout, profile)
 │   ├── theme-provider.tsx
 │   ├── theme-toggle.tsx                               # Light/dark mode toggle
 │   └── ui/                                            # Shadcn components (owned, editable)
 ├── db/
 │   ├── init.sql                                       # AGE extension, graph, all schemas and tables
-│   ├── migrate.sh                                     # Runs init.sql against running container
-│   ├── 002_manuscript_types.sql / .sh                 # Migration: manuscript types table
-│   ├── 003_journal_acronym.sql / .sh                  # Migration: journal acronym column (UNIQUE NOT NULL)
-│   ├── 004_credit.sql / .sh                           # Migration: CRediT roles + journal_settings table
-│   ├── seed.sql / seed.sh                             # Minimal test data
-│   └── seed_full.sql / seed_full.sh                   # Full test dataset
+│   ├── migrate.sh                                     # Idempotent migration runner (schema_migrations table)
+│   ├── 002_manuscript_types.sql                       # Migration: manuscript types table
+│   ├── 003_journal_acronym.sql                        # Migration: journal acronym (UNIQUE NOT NULL)
+│   ├── 004_credit.sql                                 # Migration: CRediT roles + journal_settings
+│   ├── 005_assignments.sql                            # Migration: reviewer assignments table
+│   ├── 006_history.sql                                # Migration: history event log
+│   ├── 007_email.sql                                  # Migration: email queue / outbox
+│   ├── 008_file_storage.sql                           # Migration: manuscript file attachments
+│   ├── 009_reviews.sql                                # Migration: review submissions
+│   ├── 010_revisions.sql                              # Migration: author revisions
+│   ├── 011_manuscript_authors.sql                     # Migration: multi-author support
+│   ├── 012_better_auth.sql                            # Migration: Better Auth tables (idempotent)
+│   ├── seed_test.sql / seed_test.sh                   # TEST journal seed — 10 users, 8 manuscripts
+│   ├── seed.sql / seed.sh                             # Minimal dev seed
+│   └── seed_full.sql / seed_full.sh                   # Full dev dataset
 ├── lib/
+│   ├── auth.ts                                        # Better Auth instance
+│   ├── auth-helpers.ts                                # requireRole() — server-side access control
 │   ├── graph.ts                                       # sql(), cypher(), cypherMutate(), withTransaction()
 │   ├── credit.ts                                      # CRediT Contributor Role Taxonomy — 14 roles
 │   └── utils.ts                                       # cn() helper (tailwind-merge + clsx)
+├── tests/
+│   ├── e2e/                                           # Playwright E2E tests
+│   │   ├── auth.setup.ts                              # Auth setup — storageState for 4 users
+│   │   ├── author.spec.ts                             # Author portal — portal, submission form
+│   │   ├── queue.spec.ts                              # Checklist queue — loads, links, titles
+│   │   ├── manuscript-detail.spec.ts                  # Manuscript detail — metadata, checklist, timeline
+│   │   ├── eic.spec.ts                                # EIC dashboard — stats, stalled, decisions
+│   │   └── reviewer.spec.ts                           # Reviewer portal — assignments, detail, breadcrumb
+│   └── puppeteer/                                     # Puppeteer smoke + screenshot tests
+│       ├── helpers.ts                                 # launchBrowser(), loginAs(), assertPageOk()
+│       ├── smoke.test.ts                              # 9 smoke tests — all key pages return HTTP 200
+│       └── screenshots.test.ts                        # 7 screenshot captures for visual review
+├── .github/
+│   └── workflows/
+│       ├── ci.yml                                     # CI: migrate, seed, build, Playwright, Puppeteer
+│       └── release.yml                                # Release: build Docker image → GHCR
 ├── CLAUDE.md                                          # Claude Code project guide (architecture decisions)
 ├── components.json                                    # Shadcn configuration
 └── next.config.ts                                     # Next.js configuration

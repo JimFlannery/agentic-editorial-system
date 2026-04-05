@@ -52,14 +52,15 @@ async function getRecentActivity(journalId: string): Promise<ActivityEvent[]> {
 }
 
 const eventLabels: Record<string, { label: string; cls: string }> = {
+  "manuscript.submitted": { label: "Manuscript submitted",  cls: "text-zinc-600 dark:text-zinc-400" },
   "checklist.evaluated":  { label: "Checklist evaluated",   cls: "text-blue-600 dark:text-blue-400" },
-  "decision.sent":        { label: "Decision sent",         cls: "text-green-600 dark:text-green-400" },
+  "checklist.passed":     { label: "Passed to editor",      cls: "text-green-600 dark:text-green-400" },
   "reviewer.invited":     { label: "Reviewer invited",      cls: "text-violet-600 dark:text-violet-400" },
   "reviewer.accepted":    { label: "Reviewer accepted",     cls: "text-violet-600 dark:text-violet-400" },
   "reviewer.declined":    { label: "Reviewer declined",     cls: "text-zinc-500 dark:text-zinc-400" },
   "review.submitted":     { label: "Review submitted",      cls: "text-indigo-600 dark:text-indigo-400" },
-  "manuscript.submitted": { label: "Manuscript submitted",  cls: "text-zinc-600 dark:text-zinc-400" },
-  "checklist.passed":     { label: "Passed to editor",      cls: "text-green-600 dark:text-green-400" },
+  "decision.sent":        { label: "Decision sent",         cls: "text-green-600 dark:text-green-400" },
+  "revision.submitted":   { label: "Revision submitted",    cls: "text-amber-600 dark:text-amber-400" },
   "manuscript.returned":  { label: "Returned to author",    cls: "text-amber-600 dark:text-amber-400" },
 }
 

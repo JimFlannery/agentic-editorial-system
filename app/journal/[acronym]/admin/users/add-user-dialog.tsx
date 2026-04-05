@@ -14,14 +14,27 @@ import { Label } from "@/components/ui/label"
 import { addUser, editUser } from "./actions"
 
 const ROLES = [
-  { value: "author",           label: "Author" },
-  { value: "reviewer",         label: "Reviewer" },
-  { value: "assistant_editor", label: "Assistant Editor" },
-  { value: "editor",           label: "Editor" },
-  { value: "editor_in_chief",  label: "Editor-in-Chief" },
-  { value: "editorial_support",label: "Editorial Support" },
-  { value: "journal_admin",    label: "Journal Admin" },
+  { value: "author",            label: "Author" },
+  { value: "reviewer",          label: "Reviewer" },
+  { value: "assistant_editor",  label: "Assistant Editor" },
+  { value: "editor",            label: "Editor" },
+  { value: "editor_in_chief",   label: "Editor-in-Chief" },
+  { value: "editorial_support", label: "Editorial Support" },
+  { value: "journal_admin",     label: "Journal Admin" },
 ]
+
+// Roles that can be scoped to a section
+const SECTIONABLE_ROLES = new Set([
+  "assistant_editor",
+  "editor",
+  "editorial_support",
+  "editor_in_chief",
+])
+
+interface Section {
+  id: string
+  name: string
+}
 
 interface Person {
   id: string
@@ -30,22 +43,32 @@ interface Person {
   orcid: string | null
   journal_id: string
   roles: string | null
+  role_sections: Record<string, string | null> | null
 }
 
 interface Props {
   journalId: string
   person?: Person
+  sections?: Section[]
 }
 
-export function AddUserDialog({ journalId, person }: Props) {
+export function AddUserDialog({ journalId, person, sections = [] }: Props) {
   const isEdit = !!person
   const [open, setOpen] = useState(false)
   const [error, setError] = useState<string | null>(null)
+  const [checkedRoles, setCheckedRoles] = useState<Set<string>>(
+    new Set(person?.roles ? person.roles.split(", ") : [])
+  )
   const formRef = useRef<HTMLFormElement>(null)
 
-  const currentRoles = new Set(
-    person?.roles ? person.roles.split(", ") : []
-  )
+  function toggleRole(role: string, checked: boolean) {
+    setCheckedRoles((prev) => {
+      const next = new Set(prev)
+      if (checked) next.add(role)
+      else next.delete(role)
+      return next
+    })
+  }
 
   async function handleSubmit(formData: FormData) {
     setError(null)
@@ -55,12 +78,17 @@ export function AddUserDialog({ journalId, person }: Props) {
       } else {
         await addUser(formData)
         formRef.current?.reset()
+        setCheckedRoles(new Set())
       }
       setOpen(false)
     } catch (e) {
       setError(e instanceof Error ? e.message : "Something went wrong")
     }
   }
+
+  const sectionableChecked = ROLES.filter(
+    (r) => SECTIONABLE_ROLES.has(r.value) && checkedRoles.has(r.value)
+  )
 
   return (
     <Dialog open={open} onOpenChange={setOpen}>
@@ -90,6 +118,7 @@ export function AddUserDialog({ journalId, person }: Props) {
             <Label htmlFor="orcid">ORCID</Label>
             <Input id="orcid" name="orcid" placeholder="0000-0000-0000-0000" defaultValue={person?.orcid ?? ""} />
           </div>
+
           <div className="space-y-2">
             <Label>Roles</Label>
             <div className="grid grid-cols-2 gap-1.5">
@@ -99,7 +128,8 @@ export function AddUserDialog({ journalId, person }: Props) {
                     type="checkbox"
                     name="roles"
                     value={r.value}
-                    defaultChecked={currentRoles.has(r.value)}
+                    checked={checkedRoles.has(r.value)}
+                    onChange={(e) => toggleRole(r.value, e.target.checked)}
                     className="rounded border-zinc-300"
                   />
                   {r.label}
@@ -107,6 +137,36 @@ export function AddUserDialog({ journalId, person }: Props) {
               ))}
             </div>
           </div>
+
+          {/* Section assignments — only shown when sectionable roles are checked and sections exist */}
+          {sections.length > 0 && sectionableChecked.length > 0 && (
+            <div className="space-y-2">
+              <Label>Section assignments <span className="font-normal text-zinc-400">(optional)</span></Label>
+              <p className="text-xs text-zinc-400">
+                Restrict this person to manuscripts in a specific section. Leave blank to see all manuscripts.
+              </p>
+              <div className="space-y-2">
+                {sectionableChecked.map((r) => (
+                  <div key={r.value} className="flex items-center gap-3">
+                    <span className="text-sm text-zinc-600 dark:text-zinc-400 w-36 shrink-0">
+                      {r.label}
+                    </span>
+                    <select
+                      name={`section_${r.value}`}
+                      defaultValue={person?.role_sections?.[r.value] ?? ""}
+                      className="flex-1 rounded-lg border border-zinc-200 dark:border-zinc-700 bg-white dark:bg-zinc-900 px-3 py-1.5 text-sm text-zinc-900 dark:text-zinc-100 focus:outline-none focus:ring-2 focus:ring-zinc-400 dark:focus:ring-zinc-600"
+                    >
+                      <option value="">All manuscripts</option>
+                      {sections.map((s) => (
+                        <option key={s.id} value={s.id}>{s.name}</option>
+                      ))}
+                    </select>
+                  </div>
+                ))}
+              </div>
+            </div>
+          )}
+
           {error && <p className="text-sm text-red-500">{error}</p>}
           <div className="flex justify-end gap-2 pt-2">
             <Button type="button" variant="outline" onClick={() => setOpen(false)}>Cancel</Button>

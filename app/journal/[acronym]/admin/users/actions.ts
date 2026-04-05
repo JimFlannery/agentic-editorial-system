@@ -3,12 +3,29 @@
 import { sql } from "@/lib/graph"
 import { revalidatePath } from "next/cache"
 
-// Roles journal-admins are permitted to assign. system_admin is excluded —
-// that is only assignable via the /admin system-level users page.
 const ASSIGNABLE_ROLES = new Set([
   "author", "reviewer", "assistant_editor", "editor",
   "editor_in_chief", "editorial_support", "journal_admin",
 ])
+
+const SECTIONABLE_ROLES = new Set([
+  "assistant_editor", "editor", "editorial_support", "editor_in_chief",
+])
+
+async function getAcronym(journalId: string): Promise<string> {
+  const rows = await sql<{ acronym: string }>(
+    "SELECT acronym FROM manuscript.journals WHERE id = $1",
+    [journalId]
+  )
+  return rows[0]?.acronym ?? ""
+}
+
+/** Returns section_id string or null from the form value for a given role */
+function sectionIdFor(role: string, formData: FormData): string | null {
+  if (!SECTIONABLE_ROLES.has(role)) return null
+  const val = (formData.get(`section_${role}`) as string)?.trim()
+  return val || null
+}
 
 export async function addUser(formData: FormData) {
   const journal_id = formData.get("journal_id") as string
@@ -28,22 +45,17 @@ export async function addUser(formData: FormData) {
     [journal_id, email, full_name, orcid]
   )
 
-  if (roles.length > 0) {
-    for (const role of roles) {
-      await sql(
-        `INSERT INTO manuscript.person_roles (person_id, journal_id, role)
-         VALUES ($1, $2, $3)
-         ON CONFLICT DO NOTHING`,
-        [person.id, journal_id, role]
-      )
-    }
+  for (const role of roles) {
+    const section_id = sectionIdFor(role, formData)
+    await sql(
+      `INSERT INTO manuscript.person_roles (person_id, journal_id, role, section_id)
+       VALUES ($1, $2, $3, $4)
+       ON CONFLICT DO NOTHING`,
+      [person.id, journal_id, role, section_id]
+    )
   }
 
-  const acronymRows = await sql<{ acronym: string }>(
-    "SELECT acronym FROM manuscript.journals WHERE id = $1",
-    [journal_id]
-  )
-  const acronym = acronymRows[0]?.acronym
+  const acronym = await getAcronym(journal_id)
   revalidatePath(`/journal/${acronym}/admin/users`)
 }
 
@@ -61,23 +73,21 @@ export async function editUser(id: string, journalId: string, formData: FormData
     [full_name, email, orcid, id]
   )
 
-  // Replace roles: delete existing, insert new
+  // Replace roles: delete existing, insert new with section assignments
   await sql(
     `DELETE FROM manuscript.person_roles WHERE person_id = $1 AND journal_id = $2`,
     [id, journalId]
   )
 
   for (const role of roles) {
+    const section_id = sectionIdFor(role, formData)
     await sql(
-      `INSERT INTO manuscript.person_roles (person_id, journal_id, role) VALUES ($1, $2, $3)`,
-      [id, journalId, role]
+      `INSERT INTO manuscript.person_roles (person_id, journal_id, role, section_id)
+       VALUES ($1, $2, $3, $4)`,
+      [id, journalId, role, section_id]
     )
   }
 
-  const acronymRows = await sql<{ acronym: string }>(
-    "SELECT acronym FROM manuscript.journals WHERE id = $1",
-    [journalId]
-  )
-  const acronym = acronymRows[0]?.acronym
+  const acronym = await getAcronym(journalId)
   revalidatePath(`/journal/${acronym}/admin/users`)
 }
