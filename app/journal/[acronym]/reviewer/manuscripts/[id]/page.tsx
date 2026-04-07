@@ -3,6 +3,7 @@ import Link from "next/link"
 import { headers } from "next/headers"
 import { auth } from "@/lib/auth"
 import { sql } from "@/lib/graph"
+import { formatTrackingNumber } from "@/lib/tracking"
 import ReviewForm from "./review-form"
 
 interface ManuscriptRow {
@@ -16,6 +17,8 @@ interface ManuscriptRow {
   author_name: string
   file_key: string | null
   file_name: string | null
+  tracking_number: string | null
+  revision_number: number
 }
 
 interface AssignmentRow {
@@ -82,6 +85,8 @@ export default async function ReviewerManuscriptPage({
         m.submitted_at::text,
         m.file_key,
         m.file_name,
+        m.tracking_number,
+        m.revision_number,
         j.id   AS journal_id,
         j.name AS journal_name,
         p.full_name AS author_name
@@ -134,6 +139,11 @@ export default async function ReviewerManuscriptPage({
         {/* Left: manuscript info */}
         <div className="lg:col-span-2 space-y-5">
           <div>
+            {manuscript.tracking_number && (
+              <p className="text-xs font-mono text-muted-foreground mb-1">
+                {formatTrackingNumber(manuscript.tracking_number, manuscript.revision_number)}
+              </p>
+            )}
             <h1 className="text-lg font-semibold text-foreground mb-2 leading-snug">
               {manuscript.title}
             </h1>

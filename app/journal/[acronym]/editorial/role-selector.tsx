@@ -16,6 +16,7 @@ const ROLES = [
   { label: "Editor",            path: (a: string) => `/journal/${a}/editorial/editor` },
   { label: "Editor-in-Chief",   path: (a: string) => `/journal/${a}/editorial/editor-in-chief` },
   { label: "Editorial Support", path: (a: string) => `/journal/${a}/editorial/editorial-support` },
+  { label: "Journal Admin",     path: (a: string) => `/journal/${a}/admin` },
 ]
 
 export function RoleSelector({ acronym }: { acronym: string }) {

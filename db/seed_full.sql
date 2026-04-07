@@ -68,14 +68,16 @@ $$) AS (v agtype);
 -- 1. Journals
 -- =============================================================================
 
-INSERT INTO manuscript.journals (id, name, issn, subject_area) VALUES
+INSERT INTO manuscript.journals (id, name, acronym, issn, subject_area) VALUES
     ('00000000-0000-0000-0000-000000000001',
      'Journal of Open Research',
+     'TEST',
      '2345-6789',
      'Multidisciplinary'),
 
     ('00000000-0000-0000-0000-000000000002',
      'Computational Biology Review',
+     'CBR',
      '1234-5678',
      'Computational Biology');
 

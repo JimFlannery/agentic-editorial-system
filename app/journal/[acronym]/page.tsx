@@ -1,6 +1,10 @@
 import { notFound } from "next/navigation"
 import Link from "next/link"
+import { headers } from "next/headers"
+import { auth } from "@/lib/auth"
 import { sql } from "@/lib/graph"
+import { HelpPanel } from "@/components/help-panel"
+import { UserMenu } from "@/components/user-menu"
 
 interface Journal {
   id: string
@@ -77,7 +81,10 @@ export default async function JournalLandingPage({
   const journal = await getJournal(acronym)
   if (!journal) notFound()
 
-  const settings = await getSettings(journal.id)
+  const [settings, session] = await Promise.all([
+    getSettings(journal.id),
+    auth.api.getSession({ headers: await headers() }),
+  ])
 
   return (
     <div className="min-h-screen bg-background">
@@ -126,6 +133,17 @@ export default async function JournalLandingPage({
             >
               ← All journals
             </Link>
+            <HelpPanel />
+            {session ? (
+              <UserMenu name={session.user.name} email={session.user.email} />
+            ) : (
+              <Link
+                href={`/login?next=/journal/${journal.acronym}`}
+                className="text-xs text-muted-foreground hover:text-foreground transition-colors"
+              >
+                Sign in
+              </Link>
+            )}
           </nav>
         </div>
       </header>

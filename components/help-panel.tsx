@@ -36,13 +36,11 @@ export function HelpPanel() {
 
   return (
     <Sheet open={open} onOpenChange={setOpen}>
-      <SheetTrigger asChild>
-        <button
-          className="flex items-center justify-center w-6 h-6 rounded-full border border-zinc-300 dark:border-zinc-600 text-zinc-500 dark:text-zinc-400 hover:border-zinc-500 dark:hover:border-zinc-400 hover:text-zinc-700 dark:hover:text-zinc-200 transition-colors text-xs font-medium"
-          aria-label="Help"
-        >
-          ?
-        </button>
+      <SheetTrigger
+        className="flex items-center justify-center w-6 h-6 rounded-full border border-zinc-300 dark:border-zinc-600 text-zinc-500 dark:text-zinc-400 hover:border-zinc-500 dark:hover:border-zinc-400 hover:text-zinc-700 dark:hover:text-zinc-200 transition-colors text-xs font-medium"
+        aria-label="Help"
+      >
+        ?
       </SheetTrigger>
       <SheetContent side="right" className="w-[480px] sm:w-[520px] overflow-y-auto">
         <SheetHeader className="mb-6">

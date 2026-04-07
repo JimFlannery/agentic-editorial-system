@@ -282,8 +282,8 @@ This license was chosen deliberately. Editorial management systems are delivered
 ### Infrastructure
 - **Docker Compose stack** — `apache/age` (PostgreSQL + AGE extension) on port 5432, MinIO on ports 9000/9001, both with persistent volumes and healthchecks
 - **Database schemas** — `manuscript` schema (journals, people, roles, manuscripts, manuscript types, assignments, multi-author support), `history` schema (append-only event log), AGE property graph (`ems_graph`)
-- **Migrations** — `db/init.sql` (base schema) through `db/012_better_auth.sql` (auth tables, idempotent); migration tracking via `schema_migrations` table; `db/migrate.sh` is idempotent and skips already-applied migrations
-- **Seed data** — `db/seed_test.sql` — TEST journal with 10 users across all roles, 8 manuscripts in every workflow state; `db/seed.sql` / `db/seed_full.sql` for development
+- **Migrations** — `db/init.sql` (base schema) through `db/010_tracking_number.sql` (per-journal/year sequence + helper function for ScholarOne-style manuscript IDs); migration tracking via `schema_migrations` table; `db/migrate.sh` is idempotent and skips already-applied migrations
+- **Seed data** — `db/seed_test.sql` — TEST journal with 10 users across all roles, 8 manuscripts in every workflow state; `db/seed.sql` / `db/seed_full.sql` for development. **`db/seed_workflow.sql` / `db/clear_workflow.sql`** — idempotent graph-workflow seed/clear pair used to toggle the pipeline view between graph-driven and enum-fallback modes for testing
 - **`lib/graph.ts`** — database client with `sql()` for parameterised SQL, `cypher()` for graph queries, `cypherMutate()` for graph writes, and `withTransaction()` for multi-step operations
 - **Object storage** — MinIO for self-hosted; swap to any S3-compatible service via environment variables
 
@@ -292,10 +292,13 @@ This license was chosen deliberately. Editorial management systems are delivered
 - **Role-based routing** — post-login redirect based on editorial role and journal; journal picker for users with roles on multiple journals
 - **`lib/auth-helpers.ts`** — `requireRole()` for server-side access control on all protected pages
 
+### Manuscript Identification
+- **ScholarOne-style tracking numbers** — every manuscript gets a stable, human-readable ID of the form `ACRONYM-YYYY-NNNNN` (e.g. `TEST-2026-00003`), with revisions appended as `.R1`, `.R2`, etc. Allocated atomically by the `manuscript.next_tracking_number(journal_id)` Postgres function backed by a per-`(journal, year)` counter table; the year resets each January and the 5-digit zero-pad supports up to 99,999 submissions per journal per year before the digit count grows. `lib/tracking.ts` exports `formatTrackingNumber()` for consistent display. Tracking numbers appear in every list (author center, reviewer center, editorial queue, pipeline, all editorial dashboards) and at the top of every manuscript detail page
+
 ### Author Portal (`/journal/[acronym]/author`)
-- **Manuscript list** — paginated list of the author's submissions with status badges; links to per-manuscript detail
-- **Submission form** — title, abstract, manuscript type, multiple co-authors (CRediT roles), file upload to MinIO/S3
-- **Manuscript detail** — full metadata, activity timeline, file download, revision submission
+- **Manuscript list** — paginated list of the author's submissions with tracking number, status badges; links to per-manuscript detail
+- **Submission form** — title, abstract, manuscript type, multiple co-authors (CRediT roles), file upload to MinIO/S3; tracking number allocated at submission time
+- **Manuscript detail** — full metadata, activity timeline, file download, revision submission (revision_number auto-increments)
 
 ### Reviewer Portal (`/journal/[acronym]/reviewer`)
 - **Assignment dashboard** — stat cards (pending invitations, in progress, completed), full assignment list with due dates and status badges
@@ -314,6 +317,7 @@ This license was chosen deliberately. Editorial management systems are delivered
 
 ### Editorial Workspace (`/journal/[acronym]/editorial`)
 The day-to-day working area for all editorial roles. Journal selector and role selector in the header. All pages are scoped to the journal identified by acronym in the URL.
+- **Manuscript Pipeline** — graph-driven oversight view for EICs and editorial offices. Horizontal pipeline strip across the top shows every workflow stage with its count and a stalled-count indicator (>14 days no activity); clicking a tile filters the manuscript table below. Stages, ordering, labels, and which states are terminal all come from the property graph (`WorkflowDefinition` → `Step` nodes with `position`, `status`, `terminal` properties). When no workflow exists for a journal, the page falls back to the relational `manuscript.status` enum with an inline notice linking to the workflow config chat. Fully accessible: real `<table>` markup with `<th scope>`, `aria-pressed` on filter tiles, screen-reader text alternatives for stalled indicators, no colour-only meaning, URL-driven filters (no client JS state)
 - **Assistant Editor dashboard** — live queue counts, checklist intake, reviewer invitation management
 - **Editor dashboard** — reviewer reports, accept/reject/revise decisions
 - **Editor-in-Chief dashboard** — stat cards, stalled manuscripts widget, monthly metrics, recent decisions
@@ -351,12 +355,17 @@ Confirm-before-commit applies to both modes. A Standard Peer Review workflow (5 
 - **Playwright E2E** (`tests/e2e/`) — auth setup (storageState per role) + author, queue, manuscript-detail, EIC, and reviewer spec files; 28 tests
 - **Puppeteer smoke + screenshot tests** (`tests/puppeteer/`) — 9 smoke tests (all pages HTTP 200) + 7 screenshot captures; `npm run test:puppeteer`
 - **GitHub Actions CI** (`.github/workflows/ci.yml`) — runs on every PR and push to main: migrate, seed TEST, build, Playwright, Puppeteer, upload report artifact
+- **Manual testing procedures** ([docs/testing.md](docs/testing.md)) — documents test paths that are easy to regress and not covered by automated tests. First procedure: toggling the Manuscript Pipeline page between graph-driven and enum-fallback modes via `db/seed_workflow.sql` / `db/clear_workflow.sql`. Each procedure shows commands in both bash (`<` redirect) and PowerShell (`Get-Content | …`) forms
+
+### Accessibility
+- **WCAG 2.1 AA as the project baseline** — codified in [CLAUDE.md](CLAUDE.md). Every UI change is held to: semantic HTML over `<div onClick>`, programmatic labels on every form control, visible focus rings, 4.5:1 contrast in light and dark modes (including admin-set per-journal theme colours), no colour-only meaning, real `<table>` markup for tabular data, alt text and ARIA live regions for async actions, `prefers-reduced-motion` respect, and tagged PDFs for system-generated documents. Verification: automated checks (axe-core / Lighthouse / `eslint-plugin-jsx-a11y`), manual keyboard tab-through, 200% zoom + 320 px width, occasional screen-reader sanity checks. Required because many target operators (public universities, federally-funded institutions, learned societies) are subject to Section 508, the ADA, and equivalent obligations
 
 ### Planned (not yet built)
 - **Admin-configurable form fields** — drag-to-reorder checklist questions and submission form fields per journal (`manuscript.form_fields`)
 - **In-app notification feed** — editorial staff notification panel in the header (manuscript assigned, review submitted, decision sent)
-- **Research Integrity Screening agent** — per-submission fraud signal report (image forensics, IP anomalies, tortured phrases, reviewer manipulation, AI-generated text, ORCID verification, citation anomalies, metadata checks)
+- **Research Integrity Screening agent** — per-submission fraud signal report. Implemented as a two-tier system: (1) a **separate MCP server repo** (`oss-ris-mcp`) that builds versioned definition files (retracted authors/DOIs, hijacked journals, paper mill phrase lists, fraud taxonomy) from sources including the Retraction Watch/Crossref dataset, refreshed on each MCP server release; and (2) live MCP tools for computational checks (IP reputation and geolocation vs. affiliation, email domain/disposable address detection, ORCID verification, GRIM/SPRITE statistical tests, citation retraction batch lookup). AgenticES pins to a definition file version and calls the MCP tools at screening time; the two repos have independent contributor bases. Architecture is documented but not yet built — non-trivial.
 - **Reviewer selection agent** — ranked shortlist with conflict-of-interest detection
+- **Mobile phone support** — responsive layouts for authors and reviewers; no separate app or routes. Authors can check submission status and read decision letters on mobile; reviewers can accept/decline invitations and view assignment deadlines. Long-form actions (file upload, writing a review, editorial decisions, checklist evaluation, all admin pages) show a "desktop required" affordance. Editorial staff get read-only queue stats and manuscript lists on mobile. Build order: reviewer invitation response first (most time-sensitive), then author status dashboard, reviewer assignment list, editorial dashboard stats, and finally mobile nav patterns.
 
 ---
 

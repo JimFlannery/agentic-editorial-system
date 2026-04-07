@@ -25,6 +25,8 @@ Follow [docs/deploy/development.md](deploy/development.md) to get a local enviro
 
 Before starting work on a non-trivial change, open an issue to discuss the approach. This project has deliberate architectural constraints (graph-first workflows, AI as the only graph mutation path, AGPLv3 compatibility) that affect what solutions are acceptable.
 
+Manual testing procedures for features with non-obvious test paths (e.g. the Manuscript Pipeline page, which has both a graph-driven and an enum-fallback render path) live in [docs/testing.md](testing.md). Run the relevant procedure before submitting a PR that touches any of those features, and add a new procedure when you ship a feature with state that would be easy to regress.
+
 ---
 
 ## 2. Architecture overview

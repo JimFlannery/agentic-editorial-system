@@ -38,11 +38,18 @@ export async function addUser(formData: FormData) {
   if (!full_name) throw new Error("Full name is required")
   if (!email) throw new Error("Email is required")
 
+  // Link to Better Auth user if one exists for this email
+  const authRows = await sql<{ id: string }>(
+    `SELECT id FROM public."user" WHERE email = $1`,
+    [email]
+  )
+  const auth_user_id = authRows[0]?.id ?? null
+
   const [person] = await sql<{ id: string }>(
-    `INSERT INTO manuscript.people (journal_id, email, full_name, orcid)
-     VALUES ($1, $2, $3, $4)
+    `INSERT INTO manuscript.people (journal_id, email, full_name, orcid, auth_user_id)
+     VALUES ($1, $2, $3, $4, $5)
      RETURNING id`,
-    [journal_id, email, full_name, orcid]
+    [journal_id, email, full_name, orcid, auth_user_id]
   )
 
   for (const role of roles) {
@@ -68,9 +75,16 @@ export async function editUser(id: string, journalId: string, formData: FormData
   if (!full_name) throw new Error("Full name is required")
   if (!email) throw new Error("Email is required")
 
+  // Re-resolve auth_user_id in case email changed or account was created after this person was added
+  const authRows = await sql<{ id: string }>(
+    `SELECT id FROM public."user" WHERE email = $1`,
+    [email]
+  )
+  const auth_user_id = authRows[0]?.id ?? null
+
   await sql(
-    `UPDATE manuscript.people SET full_name = $1, email = $2, orcid = $3 WHERE id = $4`,
-    [full_name, email, orcid, id]
+    `UPDATE manuscript.people SET full_name = $1, email = $2, orcid = $3, auth_user_id = $4 WHERE id = $5`,
+    [full_name, email, orcid, auth_user_id, id]
   )
 
   // Replace roles: delete existing, insert new with section assignments

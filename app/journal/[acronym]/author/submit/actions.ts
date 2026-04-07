@@ -52,13 +52,20 @@ export async function submitManuscript(acronym: string, formData: FormData) {
     payload[key] = value === "on" ? true : value
   }
 
+  // Allocate a tracking number (e.g. TEST-2026-0003) before insert
+  const trackingRows = await sql<{ tracking_number: string }>(
+    `SELECT manuscript.next_tracking_number($1) AS tracking_number`,
+    [journal.id]
+  )
+  const trackingNumber = trackingRows[0].tracking_number
+
   // Create manuscript record
   const manuscriptRows = await sql<{ id: string }>(
     `INSERT INTO manuscript.manuscripts
-       (journal_id, title, abstract, manuscript_type, submitted_by, status)
-     VALUES ($1, $2, $3, $4, $5, 'submitted')
+       (journal_id, title, abstract, manuscript_type, submitted_by, status, tracking_number)
+     VALUES ($1, $2, $3, $4, $5, 'submitted', $6)
      RETURNING id`,
-    [journal.id, title, abstract, manuscript_type, person.id]
+    [journal.id, title, abstract, manuscript_type, person.id, trackingNumber]
   )
   const manuscript = manuscriptRows[0]
 

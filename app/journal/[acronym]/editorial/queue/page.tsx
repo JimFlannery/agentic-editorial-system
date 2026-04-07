@@ -4,6 +4,7 @@ import { notFound } from "next/navigation"
 import { auth } from "@/lib/auth"
 import { sql } from "@/lib/graph"
 import { Pagination } from "@/components/pagination"
+import { formatTrackingNumber } from "@/lib/tracking"
 
 const PAGE_SIZE = 20
 
@@ -18,6 +19,8 @@ interface QueueRow {
   author_email: string
   journal_name: string
   journal_id: string
+  tracking_number: string | null
+  revision_number: number
   checklist_evaluated_at: string | null
   checklist_overall: string | null
 }
@@ -91,6 +94,8 @@ async function getQueue(
         m.manuscript_type,
         m.status,
         m.submitted_at,
+        m.tracking_number,
+        m.revision_number,
         p.full_name  AS author_name,
         p.email      AS author_email,
         j.name       AS journal_name,
@@ -179,6 +184,7 @@ export default async function QueuePage({
       sql<QueueRow>(`
         SELECT
           m.id, m.title, m.subject_area, m.manuscript_type, m.status, m.submitted_at,
+          m.tracking_number, m.revision_number,
           p.full_name AS author_name, p.email AS author_email,
           j.name AS journal_name, j.id AS journal_id,
           chk.occurred_at::text AS checklist_evaluated_at,
@@ -235,6 +241,11 @@ export default async function QueuePage({
             >
               <div className="flex items-start justify-between gap-4">
                 <div className="min-w-0 flex-1">
+                  {ms.tracking_number && (
+                    <p className="text-xs font-mono text-muted-foreground mb-1">
+                      {formatTrackingNumber(ms.tracking_number, ms.revision_number)}
+                    </p>
+                  )}
                   <p className="font-medium text-foreground text-sm mb-1 truncate">
                     {ms.title}
                   </p>

@@ -6,6 +6,7 @@ import { requireRole } from "@/lib/auth-helpers"
 import { UserMenu } from "@/components/user-menu"
 import { HelpPanel } from "@/components/help-panel"
 import { JournalSelector } from "./journal-selector"
+import { RoleSelector } from "../editorial/role-selector"
 
 interface Journal {
   id: string
@@ -68,6 +69,7 @@ export default async function JournalAcronymLayout({
           </Link>
           <span className="text-border">·</span>
           <JournalSelector journals={allJournals} current={journal.acronym} />
+          <RoleSelector acronym={journal.acronym} />
           <Link
             href={`/journal/${journal.acronym}/editorial`}
             className="ml-auto text-xs text-muted-foreground hover:text-foreground"

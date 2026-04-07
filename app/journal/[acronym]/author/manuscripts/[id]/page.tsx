@@ -3,6 +3,7 @@ import Link from "next/link"
 import { headers } from "next/headers"
 import { auth } from "@/lib/auth"
 import { sql } from "@/lib/graph"
+import { formatTrackingNumber } from "@/lib/tracking"
 import ReviseForm from "./revise-form"
 
 interface ManuscriptRow {
@@ -15,6 +16,8 @@ interface ManuscriptRow {
   journal_id: string
   file_key: string | null
   file_name: string | null
+  tracking_number: string | null
+  revision_number: number
 }
 
 interface ManuscriptAuthor {
@@ -80,7 +83,8 @@ export default async function AuthorManuscriptPage({
   const [manuscriptRows, decisionRows, authors] = await Promise.all([
     sql<ManuscriptRow>(`
       SELECT id, title, abstract, manuscript_type, status,
-             submitted_at::text, journal_id, file_key, file_name
+             submitted_at::text, journal_id, file_key, file_name,
+             tracking_number, revision_number
       FROM manuscript.manuscripts
       WHERE id = $1 AND submitted_by = $2
     `, [id, person.id]),
@@ -130,6 +134,11 @@ export default async function AuthorManuscriptPage({
         {/* Left: manuscript info */}
         <div className="lg:col-span-2 space-y-5">
           <div>
+            {manuscript.tracking_number && (
+              <p className="text-xs font-mono text-muted-foreground mb-1">
+                {formatTrackingNumber(manuscript.tracking_number, manuscript.revision_number)}
+              </p>
+            )}
             <h1 className="text-lg font-semibold text-foreground mb-2 leading-snug">
               {manuscript.title}
             </h1>

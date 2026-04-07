@@ -4,6 +4,7 @@ import { headers } from "next/headers"
 import { auth } from "@/lib/auth"
 import { sql } from "@/lib/graph"
 import { Pagination } from "@/components/pagination"
+import { formatTrackingNumber } from "@/lib/tracking"
 
 const PAGE_SIZE = 20
 
@@ -13,6 +14,8 @@ interface Manuscript {
   status: string
   manuscript_type: string
   submitted_at: string
+  tracking_number: string | null
+  revision_number: number
 }
 
 const STATUS_META: Record<string, { label: string; cls: string }> = {
@@ -80,7 +83,8 @@ export default async function AuthorPage({
   // Fetch manuscripts (paginated) + total count in parallel
   const [manuscripts, countRows, statCountRows] = await Promise.all([
     sql<Manuscript>(`
-      SELECT id, title, status, manuscript_type, submitted_at::text AS submitted_at
+      SELECT id, title, status, manuscript_type, submitted_at::text AS submitted_at,
+             tracking_number, revision_number
       FROM manuscript.manuscripts
       WHERE submitted_by = $1
       ORDER BY submitted_at DESC
@@ -148,7 +152,7 @@ export default async function AuthorPage({
             </p>
             <Link
               href={`/journal/${acronym}/author/submit`}
-              className="inline-flex items-center rounded-lg bg-foreground text-background text-sm font-medium px-4 py-2 hover:bg-zinc-700 dark:hover:bg-zinc-300 transition-colors"
+              className="inline-flex items-center rounded-lg bg-primary text-primary-foreground text-sm font-medium px-4 py-2 hover:bg-primary/90 transition-colors"
             >
               Submit a manuscript
             </Link>
@@ -169,6 +173,11 @@ export default async function AuthorPage({
                           {m.title}
                         </p>
                         <p className="text-xs text-muted-foreground mt-0.5">
+                          {m.tracking_number && (
+                            <span className="font-mono text-foreground/70 mr-2">
+                              {formatTrackingNumber(m.tracking_number, m.revision_number)}
+                            </span>
+                          )}
                           {m.manuscript_type.replace(/_/g, " ")} · Submitted {formatDate(m.submitted_at)}
                         </p>
                       </div>

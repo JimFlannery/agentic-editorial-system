@@ -38,6 +38,34 @@ Journal editorial offices, learned societies, and independent publishers. Most a
 
 ---
 
+## Accessibility (ADA / WCAG 2.1 AA)
+
+The system must be ADA-compliant. Many target operators are public universities, federally-funded research institutions, and learned societies subject to Section 508, the ADA, and equivalent obligations in other jurisdictions. Authors, reviewers, and editors using assistive technology must be able to perform every workflow without barriers. Treat **WCAG 2.1 Level AA** as the baseline target.
+
+When writing or reviewing UI code, hold every change to these standards:
+
+- **Semantic HTML first** — use `<button>`, `<a>`, `<nav>`, `<main>`, `<header>`, `<label>`, `<fieldset>` etc. before reaching for `<div onClick>`. Shadcn primitives already follow this — keep it that way.
+- **Every form control has a programmatic label** — `<Label htmlFor>`, or `aria-label` / `aria-labelledby` when a visible label is impossible. Placeholders are not labels.
+- **Keyboard operability** — every interactive element must be reachable via Tab, activatable via Enter/Space, and dismissible via Escape (for dialogs/sheets). Visible focus rings must not be removed (`focus:outline-none` is only acceptable when paired with `focus-visible:ring-*`).
+- **Colour contrast** — text must meet 4.5:1 (3:1 for large text) against its background in **both** light and dark mode. Per-journal theme colours injected via `--color-primary` must be validated when an admin sets them; reject or warn on low-contrast picks.
+- **Never convey meaning by colour alone** — status badges, validation errors, and gate outcomes must include text or an icon, not just a coloured pill.
+- **Screen-reader announcements** — async actions (form submission, AI checklist evaluation, decision sent) should announce success/failure via `aria-live` regions or toast components with appropriate `role="status"` / `role="alert"`.
+- **Images and icons** — `alt` text on every `<img>`; decorative icons get `aria-hidden="true"`; icon-only buttons get `aria-label`.
+- **Tables** — manuscript lists, reviewer queues, and audit logs use real `<table>` markup with `<th scope>` headers, not flex/grid divs, when the data is tabular.
+- **Document language** — `<html lang="en">` (or the journal's configured language) is set on the root layout.
+- **Motion** — respect `prefers-reduced-motion` for any non-essential animation.
+- **PDF and uploaded content** — manuscript PDFs themselves are outside our control, but the **viewer and download UI** around them must be accessible. Where we generate PDFs (decision letters, receipts), they should be tagged PDFs.
+
+Verification expectations for new UI work:
+- Run an automated check (axe-core / Lighthouse / `eslint-plugin-jsx-a11y`) — none of these catch everything but they catch the obvious regressions.
+- Manually tab through the page to confirm focus order is logical and nothing is keyboard-trapped.
+- Test at 200% zoom and at 320 px viewport width — no horizontal scroll, no clipped content.
+- For any new interactive component pattern, sanity-check with a screen reader (NVDA on Windows, VoiceOver on macOS) at least once.
+
+If a design request would require breaking any of the above, push back and propose an accessible alternative before implementing it.
+
+---
+
 ## Deployment Architecture
 
 Apache AGE is a C extension that must be compiled into Postgres. Most managed Postgres services (AWS RDS, Supabase, Aiven) do not support it. This shapes all deployment options. Only two managed database services are known to support AGE:

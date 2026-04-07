@@ -356,7 +356,7 @@ export function SubmitForm({ manuscriptTypes, formFields, action }: Props) {
         <button
           type="submit"
           disabled={submitting || manuscriptTypes.length === 0}
-          className="rounded-lg bg-foreground text-background text-sm font-medium px-5 py-2.5 hover:bg-zinc-700 dark:hover:bg-zinc-300 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+          className="rounded-lg bg-primary text-primary-foreground text-sm font-medium px-5 py-2.5 hover:bg-primary/90 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
         >
           {submitting ? "Submitting…" : "Submit manuscript"}
         </button>

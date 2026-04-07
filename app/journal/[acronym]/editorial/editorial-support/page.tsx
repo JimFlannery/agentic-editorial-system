@@ -1,5 +1,6 @@
 import Link from "next/link"
 import { sql } from "@/lib/graph"
+import { formatTrackingNumber } from "@/lib/tracking"
 
 interface ActivityEvent {
   manuscript_id: string
@@ -8,6 +9,8 @@ interface ActivityEvent {
   event_type: string
   occurred_at: string
   summary: string | null
+  tracking_number: string | null
+  revision_number: number
 }
 
 interface QuickCount {
@@ -38,6 +41,8 @@ async function getRecentActivity(journalId: string): Promise<ActivityEvent[]> {
     SELECT
       m.id   AS manuscript_id,
       m.title,
+      m.tracking_number,
+      m.revision_number,
       p.full_name AS author_name,
       e.event_type,
       e.occurred_at::text AS occurred_at,
@@ -147,6 +152,11 @@ export default async function EditorialSupportPage({
                       <div className="min-w-0 flex-1">
                         <p className="text-sm text-foreground truncate">{ev.title}</p>
                         <p className={`text-xs mt-0.5 ${meta?.cls ?? "text-muted-foreground"}`}>
+                          {ev.tracking_number && (
+                            <span className="font-mono text-foreground/70 mr-2">
+                              {formatTrackingNumber(ev.tracking_number, ev.revision_number)}
+                            </span>
+                          )}
                           {meta?.label ?? ev.event_type.replace(/\./g, " ")}
                         </p>
                         {ev.summary && (

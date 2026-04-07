@@ -12,10 +12,11 @@ LOAD 'age';
 -- ---------------------------------------------------------------------------
 -- 1. Journal
 -- ---------------------------------------------------------------------------
-INSERT INTO manuscript.journals (id, name, issn, subject_area)
+INSERT INTO manuscript.journals (id, name, acronym, issn, subject_area)
 VALUES (
     '00000000-0000-0000-0000-000000000001',
     'Journal of Open Research',
+    'TEST',
     '0000-0001',
     'Multidisciplinary'
 );

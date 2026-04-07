@@ -45,6 +45,7 @@ export default async function EditorialLayout({
   const base = `/journal/${journal.acronym}/editorial`
 
   const navItems = [
+    { href: `${base}/pipeline`,           label: "Pipeline" },
     { href: `${base}/queue`,              label: "Checklist Queue" },
     { href: `${base}/assistant-editor`,   label: "Assistant Editor" },
     { href: `${base}/editor`,             label: "Editor" },

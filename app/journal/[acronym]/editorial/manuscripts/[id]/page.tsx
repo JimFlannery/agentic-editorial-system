@@ -1,6 +1,7 @@
 import { notFound } from "next/navigation"
 import Link from "next/link"
 import { sql } from "@/lib/graph"
+import { formatTrackingNumber } from "@/lib/tracking"
 import ChecklistPanel from "./checklist"
 import ReviewerPanel from "./reviewer-panel"
 import DecisionPanel from "./decision-panel"
@@ -22,6 +23,8 @@ interface ManuscriptRow {
   author_orcid: string | null
   file_key: string | null
   file_name: string | null
+  tracking_number: string | null
+  revision_number: number
 }
 
 interface ManuscriptAuthor {
@@ -55,6 +58,8 @@ async function getManuscript(id: string): Promise<ManuscriptRow | null> {
       m.submitted_at::text AS submitted_at,
       m.file_key,
       m.file_name,
+      m.tracking_number,
+      m.revision_number,
       j.id         AS journal_id,
       j.name       AS journal_name,
       p.full_name  AS author_name,
@@ -144,6 +149,11 @@ export default async function ManuscriptDetailPage({
         {/* Left: manuscript info (2/5) */}
         <div className="lg:col-span-2 space-y-5">
           <div>
+            {manuscript.tracking_number && (
+              <p className="text-xs font-mono text-muted-foreground mb-1">
+                {formatTrackingNumber(manuscript.tracking_number, manuscript.revision_number)}
+              </p>
+            )}
             <h1 className="text-lg font-semibold text-foreground mb-2 leading-snug">
               {manuscript.title}
             </h1>

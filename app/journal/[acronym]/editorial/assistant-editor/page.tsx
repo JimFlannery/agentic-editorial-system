@@ -1,5 +1,6 @@
 import Link from "next/link"
 import { sql } from "@/lib/graph"
+import { formatTrackingNumber } from "@/lib/tracking"
 
 interface QueueCounts {
   submitted: string
@@ -14,6 +15,8 @@ interface RecentManuscript {
   author_name: string
   submitted_at: string
   checklist_overall: string | null
+  tracking_number: string | null
+  revision_number: number
 }
 
 async function getQueueCounts(journalId: string): Promise<QueueCounts> {
@@ -39,6 +42,8 @@ async function getRecentQueue(journalId: string): Promise<RecentManuscript[]> {
       m.id,
       m.title,
       m.manuscript_type,
+      m.tracking_number,
+      m.revision_number,
       p.full_name AS author_name,
       m.submitted_at::text AS submitted_at,
       chk.payload->>'overall' AS checklist_overall
@@ -179,6 +184,11 @@ export default async function AssistantEditorPage({
                     <div className="min-w-0">
                       <p className="text-sm text-zinc-900 dark:text-zinc-100 truncate">{ms.title}</p>
                       <p className="text-xs text-zinc-400 mt-0.5">
+                        {ms.tracking_number && (
+                          <span className="font-mono text-zinc-500 dark:text-zinc-300 mr-2">
+                            {formatTrackingNumber(ms.tracking_number, ms.revision_number)}
+                          </span>
+                        )}
                         {ms.author_name} · {ms.manuscript_type.replace(/_/g, " ")} · submitted {daysAgo(ms.submitted_at)}
                       </p>
                     </div>

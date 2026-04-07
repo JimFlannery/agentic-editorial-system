@@ -3,6 +3,7 @@ import { notFound, redirect } from "next/navigation"
 import { headers } from "next/headers"
 import { auth } from "@/lib/auth"
 import { sql } from "@/lib/graph"
+import { formatTrackingNumber } from "@/lib/tracking"
 
 interface ReviewAssignment {
   manuscript_id: string
@@ -11,6 +12,8 @@ interface ReviewAssignment {
   invited_at: string
   due_at: string | null
   review_status: string   // 'invited' | 'accepted' | 'declined' | 'submitted'
+  tracking_number: string | null
+  revision_number: number
 }
 
 const INVITE_META: Record<string, { label: string; cls: string }> = {
@@ -79,6 +82,8 @@ export default async function ReviewerPage({
     SELECT
       m.id    AS manuscript_id,
       m.title,
+      m.tracking_number,
+      m.revision_number,
       p.full_name AS author_name,
       a.assigned_at::text AS invited_at,
       a.due_at::text      AS due_at,
@@ -155,6 +160,11 @@ export default async function ReviewerPage({
                         {a.title}
                       </p>
                       <p className="text-xs text-muted-foreground mt-0.5">
+                        {a.tracking_number && (
+                          <span className="font-mono text-foreground/70 mr-2">
+                            {formatTrackingNumber(a.tracking_number, a.revision_number)}
+                          </span>
+                        )}
                         {a.author_name} · Invited {formatDate(a.invited_at)}
                         {due && (
                           <span className={`ml-2 ${due === "Overdue" ? "text-red-500" : "text-muted-foreground"}`}>

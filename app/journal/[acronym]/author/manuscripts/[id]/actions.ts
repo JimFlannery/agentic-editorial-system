@@ -40,13 +40,14 @@ export async function submitRevision(
   const key = manuscriptKey(journalId, manuscriptId, manuscriptFile.name)
   await uploadFile(key, manuscriptFile)
 
-  // Update the manuscript record — reset status and update file reference
+  // Update the manuscript record — reset status, bump revision, update file
   await sql(
     `UPDATE manuscript.manuscripts
      SET status = 'submitted',
          file_key = $1,
          file_name = $2,
-         file_size = $3
+         file_size = $3,
+         revision_number = revision_number + 1
      WHERE id = $4`,
     [key, manuscriptFile.name, manuscriptFile.size, manuscriptId]
   )

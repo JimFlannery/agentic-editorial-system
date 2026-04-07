@@ -1,5 +1,6 @@
 import Link from "next/link"
 import { sql } from "@/lib/graph"
+import { formatTrackingNumber } from "@/lib/tracking"
 
 interface StatusCounts {
   submitted: string
@@ -17,6 +18,8 @@ interface StalledManuscript {
   submitted_at: string
   last_event_at: string | null
   days_stalled: number
+  tracking_number: string | null
+  revision_number: number
 }
 
 interface RecentDecision {
@@ -25,6 +28,8 @@ interface RecentDecision {
   author_name: string
   occurred_at: string
   decision: string | null
+  tracking_number: string | null
+  revision_number: number
 }
 
 interface MonthlyMetric {
@@ -60,6 +65,8 @@ async function getStalledManuscripts(journalId: string): Promise<StalledManuscri
       m.id,
       m.title,
       m.manuscript_type,
+      m.tracking_number,
+      m.revision_number,
       p.full_name    AS author_name,
       m.status,
       m.submitted_at::text AS submitted_at,
@@ -87,6 +94,8 @@ async function getRecentDecisions(journalId: string): Promise<RecentDecision[]> 
     SELECT
       m.id   AS manuscript_id,
       m.title,
+      m.tracking_number,
+      m.revision_number,
       p.full_name AS author_name,
       e.occurred_at::text AS occurred_at,
       e.payload->>'decision' AS decision
@@ -238,6 +247,11 @@ export default async function EditorInChiefPage({
                     <div className="min-w-0">
                       <p className="text-sm text-foreground truncate">{ms.title}</p>
                       <p className="text-xs text-muted-foreground mt-0.5">
+                        {ms.tracking_number && (
+                          <span className="font-mono text-foreground/70 mr-2">
+                            {formatTrackingNumber(ms.tracking_number, ms.revision_number)}
+                          </span>
+                        )}
                         {ms.author_name} · {statusLabel[ms.status] ?? ms.status.replace(/_/g, " ")}
                       </p>
                     </div>
@@ -271,6 +285,11 @@ export default async function EditorInChiefPage({
                   >
                     <p className="text-sm text-foreground truncate">{d.title}</p>
                     <p className="text-xs text-muted-foreground mt-0.5">
+                      {d.tracking_number && (
+                        <span className="font-mono text-foreground/70 mr-2">
+                          {formatTrackingNumber(d.tracking_number, d.revision_number)}
+                        </span>
+                      )}
                       {d.decision ?? "decision sent"} · {formatDate(d.occurred_at)}
                     </p>
                   </Link>
