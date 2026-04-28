@@ -556,6 +556,12 @@ Configured in `.mcp.json`:
 
 ---
 
+## Contributing
+
+Contributions are welcome. Please read [CONTRIBUTING.md](./CONTRIBUTING.md) before opening a pull request — it covers the Contributor License Agreement (CLA), code style, and the review process.
+
+---
+
 ## Tech References
 
 - [Next.js Docs](https://nextjs.org/docs)
