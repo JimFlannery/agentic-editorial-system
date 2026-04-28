@@ -1,5 +1,11 @@
 import Link from "next/link"
 
+// System-level admin sections. Per-journal configuration (Manuscript Types,
+// Workflows, Email Templates, Troubleshooting) lives under
+// /journal/[acronym]/admin/... and is reached by opening a journal.
+//
+// System-level versions of those per-journal sections are still planned
+// but not yet built. See project_next_steps memory.
 const sections = [
   {
     href: "/admin/journals",
@@ -9,32 +15,7 @@ const sections = [
   {
     href: "/admin/users",
     title: "Users",
-    description: "Manage people, roles, and journal assignments.",
-  },
-  {
-    href: "/admin/manuscript-types",
-    title: "Manuscript Types",
-    description: "Define submission types with acronyms (e.g. Original Research, Case Report). Each type can have its own workflow.",
-  },
-  {
-    href: "/admin/workflows",
-    title: "Workflows",
-    description: "View all workflow definitions and their steps.",
-  },
-  {
-    href: "/admin/workflow",
-    title: "Workflow Config",
-    description: "Use the AI assistant to define or modify workflows in plain language.",
-  },
-  {
-    href: "/admin/email-templates",
-    title: "Email Templates",
-    description: "Manage reusable email templates for workflow communications.",
-  },
-  {
-    href: "/admin/troubleshooting",
-    title: "Troubleshooting",
-    description: "Describe a problem and Claude will diagnose it — querying manuscripts, gates, and the event log to find the root cause.",
+    description: "Manage system admins and editorial roles across all journals. Search by name or email; filter by role.",
   },
   {
     href: "/admin/graph",

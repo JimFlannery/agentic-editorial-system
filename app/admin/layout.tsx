@@ -5,14 +5,13 @@ import { cn } from "@/lib/utils"
 import { auth } from "@/lib/auth"
 import { UserMenu } from "@/components/user-menu"
 
+// System-level admin sections. Per-journal configuration is reached by
+// opening a journal from /admin/journals. System-wide versions of
+// Manuscript Types, Workflows, Email Templates, and Troubleshooting are
+// planned but not yet built — see project_next_steps memory.
 const navItems = [
   { href: "/admin/journals", label: "Journals" },
   { href: "/admin/users", label: "Users" },
-  { href: "/admin/manuscript-types", label: "Manuscript Types" },
-  { href: "/admin/email-templates", label: "Email Templates" },
-  { href: "/admin/workflows", label: "Workflows" },
-  { href: "/admin/workflow", label: "Workflow Config" },
-  { href: "/admin/troubleshooting", label: "Troubleshooting" },
   { href: "/admin/graph", label: "Graph View" },
 ]
 
@@ -27,7 +26,7 @@ export default async function AdminLayout({ children }: { children: React.ReactN
         {/* Top bar */}
         <header className="border-b border-border py-3 flex items-center gap-4">
           <Link
-            href="/admin"
+            href="/"
             className="font-semibold text-foreground tracking-tight text-sm"
           >
             Agentic<em style={{ color: "#4f46e5", fontStyle: "italic" }}>ES</em>

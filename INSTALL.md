@@ -370,14 +370,18 @@ psql "$DATABASE_URL" -c "\dt public.*" 2>/dev/null | grep -E "user|session|accou
 
 ### Step 2 — Create the system administrator account
 
-1. Open your app in a browser (`http://localhost:3000` or your deployed URL).
-2. Click **Sign up** and create an account with your admin email address.
-3. Promote that account to system administrator:
+The first system admin is bootstrapped via the `INITIAL_ADMIN_EMAIL` environment variable. This is one-shot: the variable promotes the first matching signup to admin, then becomes inert as soon as any admin exists.
 
-```bash
-psql "$DATABASE_URL" -c \
-  "UPDATE \"user\" SET system_admin = true WHERE email = 'YOUR_ADMIN_EMAIL';"
-```
+1. Set `INITIAL_ADMIN_EMAIL` in your `.env` (or `.env.local` for local dev) **before starting the app**:
+
+   ```
+   INITIAL_ADMIN_EMAIL=admin@yourjournal.org
+   ```
+
+   ⚠ If the app is already running, restart it so the new env var is picked up.
+
+2. Open your app in a browser (`http://localhost:3000` or your deployed URL) and navigate to `/login`.
+3. Switch to the **Sign up** tab and create an account using **exactly** the email address from `INITIAL_ADMIN_EMAIL`. The account is auto-promoted to system admin on creation.
 
 ✓ Verification:
 ```bash
@@ -385,6 +389,26 @@ psql "$DATABASE_URL" -c \
   "SELECT email, system_admin FROM \"user\" WHERE email = 'YOUR_ADMIN_EMAIL';"
 ```
 ✓ Expected: `system_admin = t`.
+
+✓ Also visible in the app log on signup:
+`[bootstrap] Promoted admin@yourjournal.org to system admin (matched INITIAL_ADMIN_EMAIL, no prior admins).`
+
+After this one-shot bootstrap, additional system admins are promoted using the CLI command shown below. An in-app promotion UI is planned.
+
+**Recovery / fallback:** If the auto-promote did not happen (env var unset, mismatched email, or app started before the variable was set), use the CLI fallback:
+
+```bash
+npm run admin:promote -- --email=admin@yourjournal.org
+```
+
+The user must have already registered via the **Sign up** tab on `/login`. For deployed installations, run inside the container (`docker exec -it ems-app npm run admin:promote -- ...` or `railway run npm run admin:promote -- ...`).
+
+As a last resort, you can run the SQL directly:
+
+```bash
+psql "$DATABASE_URL" -c \
+  "UPDATE \"user\" SET system_admin = true WHERE email = 'YOUR_ADMIN_EMAIL';"
+```
 
 ### Step 3 — Create the first journal
 

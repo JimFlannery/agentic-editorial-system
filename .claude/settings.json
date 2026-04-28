@@ -27,7 +27,16 @@
       "Bash(mkdir -p \"c:/Users/jim-f/source/repos/oss-editorial-management-system/app/journal-admin/[acronym]/workflows\")",
       "Bash(mkdir -p \"c:/Users/jim-f/source/repos/oss-editorial-management-system/app/journal-admin/[acronym]/workflow\")",
       "mcp__context7__resolve-library-id",
-      "mcp__context7__query-docs"
+      "mcp__context7__query-docs",
+      "Bash(python -c \"import zipfile; z = zipfile.ZipFile\\('angentic_es_graph.zip'\\); print\\('\\\\n'.join\\(z.namelist\\(\\)\\)\\)\")",
+      "Bash(python -c \"import zipfile; z = zipfile.ZipFile\\('agentic_es_graph.zip'\\); print\\('\\\\n'.join\\(z.namelist\\(\\)\\)\\)\")",
+      "Bash(python -c ' *)",
+      "Bash(node -e \"const p=require\\('./package.json'\\); console.log\\('TS:', p.devDependencies?.typescript || p.dependencies?.typescript\\); console.log\\('Node:', process.version\\)\")",
+      "Bash(node -e \"const p=require\\('./package.json'\\); const keys=[...Object.keys\\(p.dependencies||{}\\), ...Object.keys\\(p.devDependencies||{}\\)]; const test=keys.filter\\(k=>/\\(jest|vitest|mocha|ava|tap|playwright\\)/.test\\(k\\)\\); console.log\\('test deps:', test\\); console.log\\('scripts:', JSON.stringify\\(p.scripts,null,2\\)\\)\")",
+      "Bash(npx ts-node *)",
+      "Bash(npx tsx *)",
+      "Bash(node -e \"console.log\\(require\\('./node_modules/jest/package.json'\\).version\\)\")",
+      "Bash(node -e ' *)"
     ],
     "additionalDirectories": [
       "c:\\Users\\jim-f\\.claude\\projects\\c--Users-jim-f-source-repos-oss-editorial-management-system\\memory"

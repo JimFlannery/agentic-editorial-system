@@ -35,10 +35,10 @@ services:
       retries: 5
 
   app:
-    # Pre-built image from GitHub Container Registry.
-    # To build locally instead, replace 'image:' with:
-    #   build: .
-    image: ghcr.io/YOUR_ORG/oss-editorial-management-system:latest
+    # Build locally from the Dockerfile in this repo.
+    # To use a pre-built image from GitHub Container Registry instead, replace 'build: .' with:
+    #   image: ghcr.io/<your-org>/oss-editorial-management-system:latest
+    build: .
     container_name: ems-app
     ports:
       - "3000:3000"

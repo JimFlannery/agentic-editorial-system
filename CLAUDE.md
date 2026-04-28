@@ -6,9 +6,11 @@ This is a **TRAINS** stack project: **T**ailwind · **R**eact · **AI** · **N**
 
 An open-source, AGPLv3-licensed editorial management system for academic publishing. The core innovation is that **all editorial workflows are stored as a property graph** rather than being hardcoded. Participants (editors, reviewers, authors) are nodes; actions and handoffs are directed relationships. This makes workflows infinitely configurable without code changes.
 
-The system also integrates **agentic AI** — Claude agents traverse the graph to automate tasks like reviewer selection, conflict-of-interest detection, and status-based notifications.
+The system also integrates **agentic AI** — agents traverse the graph to automate tasks like reviewer selection, conflict-of-interest detection, and status-based notifications. AI model calls are **provider-agnostic**: [LiteLLM](https://github.com/BerriAI/litellm) mediates all model calls so the deployment can route tasks to frontier APIs (Claude, GPT, Gemini), hosted open-weight inference, or fully local inference. See `ARCHITECTURE.md` for the binding design principles.
 
-See `README.md` for full project context.
+AgenticES is the **first product in a planned suite** of scholarly infrastructure tools, governed by a non-profit foundation. Commercial hosting services sustain the commons; the SaaS hosting need is what drives the multi-tenant graph architecture and AI provider independence requirements.
+
+See `README.md` and `ARCHITECTURE.md` for full project context.
 
 ---
 
@@ -20,9 +22,9 @@ See `README.md` for full project context.
 | React | 19 |
 | Tailwind CSS | v4 |
 | Shadcn/ui | v4 |
-| Anthropic SDK | latest |
+| LiteLLM | latest (AI provider abstraction) |
 | Auth | Better Auth (MIT) |
-| Graph + Relational DB | PostgreSQL + Apache AGE extension |
+| Graph + Relational DB | PostgreSQL + Apache AGE (starter tier); NebulaGraph (growth/enterprise SaaS tier) |
 | Object Storage | MinIO (self-hosted) or any S3-compatible service |
 
 ---
@@ -68,7 +70,29 @@ If a design request would require breaking any of the above, push back and propo
 
 ## Deployment Architecture
 
-Apache AGE is a C extension that must be compiled into Postgres. Most managed Postgres services (AWS RDS, Supabase, Aiven) do not support it. This shapes all deployment options. Only two managed database services are known to support AGE:
+The project supports four deployment tiers. All run the same codebase; the difference is operational ownership and graph backend.
+
+| Tier | Graph backend | Who operates |
+|------|--------------|--------------|
+| **Hosted SaaS** | NebulaGraph (multi-tenant) | AgenticES Services (foundation subsidiary) |
+| **Self-hosted** | Apache AGE (single-tenant) | Customer |
+| **Cloud (Azure / Railway)** | Apache AGE (containerized) | Customer |
+| **Managed on-premise** | Either, depending on scale | AgenticES Services inside customer facility |
+
+### Graph backend selection
+
+- **Apache AGE** — starter/self-hosted tier. One Postgres DB, one AGE graph per tenant (`t_<id>`). The current `lib/graph.ts` implements this. Good for a single publisher on their own infrastructure.
+- **NebulaGraph** — growth/enterprise/SaaS tier. One cluster, one space per tenant. Apache 2.0, no hosting restrictions. Required for multi-tenant SaaS where graph workloads are isolated but share infrastructure. (Neo4j ruled out due to Commons Clause.)
+
+The `agentic_es_graph/` package (Python scaffold, currently at `agentic_es_graph.zip`) defines the backend-agnostic repository layer: `AGERepository`, `NebulaRepository`, `GraphFactory`. Domain code targets `GraphRepository` and never touches concrete backends. Migration tooling (`AGEExporter` → CSV → `NebulaImporter`) handles tenant upgrades from AGE to Nebula when they cross the scale threshold. See `REVIEW_NOTES.md` for pre-Phase-1 risks and dispositions.
+
+**Integration open question:** The graph package is Python; the main app is TypeScript/Next.js. The integration path (Python microservice vs. TypeScript port) is not yet decided.
+
+---
+
+### Self-hosted and cloud deployments
+
+Apache AGE is a C extension that must be compiled into Postgres. Most managed Postgres services (AWS RDS, Supabase, Aiven) do not support it. Only two managed database services are known to support AGE:
 
 - **Azure Database for PostgreSQL Flexible Server** — fully managed, GA support for AGE since May 2025
 - **Railway** — platform-managed (not fully managed), one-click Apache AGE template
@@ -768,19 +792,24 @@ Path aliases are configured in `tsconfig.json`:
 
 ---
 
-## Claude API Integration
+## AI Provider Integration
 
-**Model:** `claude-opus-4-6` with `thinking: { type: "adaptive" }`
+**Architecture principle:** All model calls must go through a provider abstraction layer. The target is [LiteLLM](https://github.com/BerriAI/litellm), which presents a single interface across frontier APIs (Claude, GPT, Gemini), hosted open-weight inference (Together, Anyscale, Fireworks), and self-hosted inference (Ollama, vLLM, llama.cpp). Hard-coding any single provider's SDK in a way that makes substitution difficult violates a binding architectural principle — see `ARCHITECTURE.md §1.3`.
 
-**Pattern:** The chat UI (`components/chat.tsx`) sends `POST /api/chat` with the full message history. The route streams back plain text chunks using the Anthropic SDK's streaming API.
+**Current state (transitional):** The live code still uses the Anthropic SDK directly (`app/api/chat/route.ts`). This needs to be migrated to LiteLLM. Until that migration is done, do not add new Anthropic SDK imports elsewhere — new AI-calling code should be written against LiteLLM from the start.
+
+**Default model:** `claude-opus-4-6` (frontier tier). Task routing tiers are defined in `ARCHITECTURE.md §2.4`.
+
+**Pattern:** The chat UI (`components/chat.tsx`) sends `POST /api/chat` with the full message history. The route streams back plain text chunks.
 
 **Adding tools or changing the system prompt:** Edit `app/api/chat/route.ts`.
 
-**Env var required:**
+**Env vars:**
 ```
-ANTHROPIC_API_KEY=sk-ant-...
+ANTHROPIC_API_KEY=sk-ant-...   # current direct integration (transitional)
+LITELLM_BASE_URL=...            # LiteLLM proxy endpoint (target architecture)
 ```
-Add to `.env.local` (already gitignored). Get a key at https://console.anthropic.com.
+Add to `.env.local` (already gitignored).
 
 ---
 

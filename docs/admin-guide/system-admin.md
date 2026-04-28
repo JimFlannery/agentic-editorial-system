@@ -2,7 +2,7 @@
 
 The system admin panel (`/admin`) is the initial setup workspace for the entire installation. In a large organisation this is typically one person — a technical or editorially experienced administrator who configures the system before handing individual journals off to journal admins.
 
-Only accounts with `system_admin = true` can access `/admin`. This flag is set directly in the database by the person who deploys the system.
+Only accounts with `system_admin = true` can access `/admin`. The first admin is created via a one-shot environment variable; subsequent admins are promoted from inside the admin panel.
 
 ---
 
@@ -22,15 +22,49 @@ Only accounts with `system_admin = true` can access `/admin`. This flag is set d
 
 ## 1. Granting system admin access
 
-After the first user account is created (via the login page), grant it system admin access directly in the database:
+There are three ways to create the first system admin, in order of preference.
 
-```sql
-UPDATE public.user SET system_admin = true WHERE email = 'your@email.com';
+### Option A — `INITIAL_ADMIN_EMAIL` (recommended)
+
+Before starting the app for the first time, set this in your `.env` (or `.env.local` for local dev):
+
+```
+INITIAL_ADMIN_EMAIL=admin@yourjournal.org
 ```
 
-Run this against your database using your deployment's connection method (psql, Railway shell, Azure Cloud Shell, etc.).
+Then start the app, open the browser, navigate to `/login`, switch to the **Sign up** tab, and register using exactly that email address. You will be auto-promoted to system admin on signup.
 
-This account can then log in and access `/admin`. Subsequent system admin accounts can be promoted via the Users section in the admin panel once the first admin is in place.
+This is **one-shot**: once any system admin exists, the variable is inert. Anyone else who later signs up — even with the same email — will be a normal user. You can leave the variable in `.env` or remove it; it has no further effect.
+
+For now, additional system admins are promoted using the same CLI command described in Option B. An in-app promotion UI is planned but not yet built.
+
+### Option B — CLI promotion (recovery hatch)
+
+If you forgot to set `INITIAL_ADMIN_EMAIL` before signing up, registered with the wrong email, or need to restore admin access after losing it, run:
+
+```bash
+npm run admin:promote -- --email=admin@yourjournal.org
+```
+
+The user must already exist (registered via the **Sign up** tab on `/login`). The script reads `DATABASE_URL` from `.env.local` automatically.
+
+For deployed installations, invoke this inside the running container:
+
+| Tier | Command |
+|---|---|
+| Self-hosted Docker | `docker exec -it ems-app npm run admin:promote -- --email=admin@yourjournal.org` |
+| Railway | `railway run npm run admin:promote -- --email=admin@yourjournal.org` |
+| Azure Container Apps | `az containerapp exec --name ems-app --resource-group <rg> --command "npm run admin:promote -- --email=admin@yourjournal.org"` |
+
+### Option C — Direct SQL (last resort)
+
+If neither of the above is available, run this against the database directly:
+
+```sql
+UPDATE "user" SET system_admin = true WHERE email = 'admin@yourjournal.org';
+```
+
+The user must already exist. This is the same operation as Option B, just without the wrapper script.
 
 ---
 
